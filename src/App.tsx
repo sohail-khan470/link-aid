@@ -9,14 +9,15 @@ import PublicRoute from "./components/auth/PublicRoute";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { useAuthStore } from "./store/auth.store";
 import { useEffect } from "react";
+import ProfilePage from "./pages/Profile/Profile";
+import UserManagement from "./pages/StaffManagement/UserManagement";
+import IncidentsAnalytics from "./pages/IncidentsManagement/IncidentsAnalytics";
 export default function App() {
   useEffect(() => {
     const cleanup = useAuthStore.getState().initializeAuth();
     return cleanup; // This will now properly call the unsubscribe
   }, []);
 
-  const { user } = useAuthStore();
-  console.log(user);
   return (
     <>
       <Router>
@@ -32,6 +33,12 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<AppLayout />}>
               <Route index path="/" element={<Home />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/staff-management" element={<UserManagement />} />
+              <Route
+                path="/incidents-analytics"
+                element={<IncidentsAnalytics />}
+              />
               {/* Add other protected routes here */}
             </Route>
           </Route>

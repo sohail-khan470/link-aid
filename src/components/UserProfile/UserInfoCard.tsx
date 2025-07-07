@@ -3,9 +3,29 @@ import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
+import { useUsersStore } from "../../store/users.store";
+import { auth } from "../../../firebase";
+import { useEffect, useState } from "react";
+import { UserProfile } from "firebase/auth";
 
 export default function UserInfoCard() {
+  const [user, setUser] = useState<UserProfile | null>(null);
+
+  const { users, fetchAllUsers } = useUsersStore();
+
+  useEffect(() => {
+    const user = users.find((u) => u.uid === auth.currentUser?.uid);
+    setUser(user);
+  }, [users]);
+
+  console.log(user);
+
+  useEffect(() => {
+    fetchAllUsers();
+  }, []);
+
   const { isOpen, openModal, closeModal } = useModal();
+  console.log(auth.currentUser);
   const handleSave = () => {
     // Handle save logic here
     console.log("Saving changes...");

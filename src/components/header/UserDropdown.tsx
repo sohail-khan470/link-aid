@@ -1,13 +1,19 @@
-import { use, useState } from "react";
+import { useEffect, useState } from "react";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { Link } from "react-router";
 import { useAuthStore } from "../../store/auth.store";
 
 export default function UserDropdown() {
-  const { user, signOut } = useAuthStore();
+  const { user, signOut, userProfile, fetchUserProfile } = useAuthStore();
 
-  console.log("LLLLLLL", user);
+  useEffect(() => {
+    if (user) fetchUserProfile(user.uid);
+  }, [user, fetchUserProfile]);
+
+  console.log("userProfile", userProfile);
+
+  console.log(user);
   const [isOpen, setIsOpen] = useState(false);
 
   function toggleDropdown() {
