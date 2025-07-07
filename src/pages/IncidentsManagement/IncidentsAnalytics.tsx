@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import PageMeta from "../../components/common/PageMeta";
+import CountryMap from "../../components/ecommerce/CountryMap";
 
 const COLORS = {
   light: {
@@ -71,6 +72,13 @@ const IncidentsAnalytics = () => {
 
     return hours;
   };
+
+  const incidentMarkers = incidents
+    .filter((i) => i.location?.lat && i.location?.lng)
+    .map((incident) => ({
+      latLng: [incident.location.lat, incident.location.lng],
+      name: incident.vehicle || "Unknown vehicle",
+    }));
 
   // Get recent incidents
   const getRecentIncidents = (limit = 10) => {
@@ -293,13 +301,34 @@ const IncidentsAnalytics = () => {
                       <p
                         className={`text-sm mt-1 ${COLORS.light.textSecondary} ${COLORS.dark.textSecondary}`}
                       >
-                        Location: {incident.location}
+                        Location:{" "}
+                        <a
+                          href={`https://www.google.com/maps?q=${incident.location.lat},${incident.location.lng}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 underline dark:text-blue-400"
+                        >
+                          {incident.location.lat}, {incident.location.lng}
+                        </a>
                       </p>
                     )}
                   </div>
                 </div>
               );
             })}
+            {/* Map View */}
+            <div
+              className={`p-6 rounded-xl shadow-sm border mb-12 ${COLORS.light.card} ${COLORS.dark.card}`}
+            >
+              <h2
+                className={`text-xl font-light mb-6 ${COLORS.light.textPrimary} ${COLORS.dark.textPrimary}`}
+              >
+                Global Incident Map
+              </h2>
+              <div style={{ height: "500px", width: "100%" }}>
+                <CountryMap mapColor="#E5E7EB" markers={incidentMarkers} />
+              </div>
+            </div>
           </div>
         </div>
       </div>

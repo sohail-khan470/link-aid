@@ -12,6 +12,7 @@ import { useEffect } from "react";
 import ProfilePage from "./pages/Profile/Profile";
 import UserManagement from "./pages/StaffManagement/UserManagement";
 import IncidentsAnalytics from "./pages/IncidentsManagement/IncidentsAnalytics";
+import InsuranceCompanyPage from "./pages/InsuranceCompany/InsuranceCompanyPage";
 export default function App() {
   useEffect(() => {
     const cleanup = useAuthStore.getState().initializeAuth();
@@ -38,6 +39,10 @@ export default function App() {
               <Route
                 path="/incidents-analytics"
                 element={<IncidentsAnalytics />}
+              />
+              <Route
+                path="/insurance-companies"
+                element={<InsuranceCompanyPage />}
               />
               {/* Add other protected routes here */}
             </Route>

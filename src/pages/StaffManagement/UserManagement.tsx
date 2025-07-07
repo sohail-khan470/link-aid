@@ -9,7 +9,7 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "../../../firebase";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
-import { User } from "../types/user.type";
+import { User } from "../types/user.types";
 import PageMeta from "../../components/common/PageMeta";
 import { FiEye, FiEyeOff, FiPlus, FiX, FiTrash2 } from "react-icons/fi";
 

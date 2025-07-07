@@ -1,13 +1,5 @@
 // src/services/user.service.ts
-import {
-  doc,
-  setDoc,
-  getFirestore,
-  getDoc,
-  collection,
-  getDocs,
-  DocumentReference,
-} from "firebase/firestore";
+import { getFirestore, collection, getDocs } from "firebase/firestore";
 import { Incident } from "../store/types/incident.type";
 
 class IncidentService {

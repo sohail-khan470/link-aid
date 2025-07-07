@@ -11,6 +11,7 @@ import {
   UserCircleIcon,
   PieChartIcon,
 } from "../icons";
+import { FiHome } from "react-icons/fi";
 import { useSidebar } from "../context/SidebarContext";
 
 type NavItem = {
@@ -43,9 +44,17 @@ const navItems: NavItem[] = [
     path: "/incidents-analytics",
   },
   {
-    name: "Forms",
+    icon: <FiHome />,
+    name: "Insurance Companies",
+    path: "/insurance-companies",
+  },
+  {
+    name: "Tow Management",
     icon: <ListIcon />,
-    subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
+    subItems: [
+      { name: "Tow Operators", path: "/tow-operators" },
+      { name: "Tow Requests", path: "/tow-requests" },
+    ],
   },
 ];
 

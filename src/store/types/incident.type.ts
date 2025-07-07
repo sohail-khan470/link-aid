@@ -5,7 +5,7 @@ export interface Incident {
   description: string;
   userEmail: string;
   dateTime: string;
-  location: string;
+  location: any;
   geo: null | string;
   document: string;
   timestamp: any;
