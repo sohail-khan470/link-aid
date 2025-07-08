@@ -7,17 +7,30 @@ import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 import PublicRoute from "./components/auth/PublicRoute";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
-import { useAuthStore } from "./store/auth.store";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import ProfilePage from "./pages/Profile/Profile";
 import UserManagement from "./pages/StaffManagement/UserManagement";
 import IncidentsAnalytics from "./pages/IncidentsManagement/IncidentsAnalytics";
 import InsuranceCompanyPage from "./pages/InsuranceCompany/InsuranceCompanyPage";
+import { onAuthStateChanged, User } from "firebase/auth";
+import LoadingSpinner from "./components/ui/LoadingSpinner";
+import { auth } from "../firebase";
 export default function App() {
+  const [_, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true); // Wait for Firebase to initialize
+
   useEffect(() => {
-    const cleanup = useAuthStore.getState().initializeAuth();
-    return cleanup; // This will now properly call the unsubscribe
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <>
