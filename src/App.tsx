@@ -18,6 +18,8 @@ import UserManagement from "./pages/TowingCompnayDashboard/StaffManagement/UserM
 import { doc, getDoc } from "firebase/firestore";
 import Unauthorized from "./pages/Shared/Unauthourised/Unauthorised";
 import { RoleRoute } from "./components/auth/RoleRoute";
+import TowingCompanyHome from "./pages/TowingCompnayDashboard/Dashboard/TowingCompanyHome";
+import HomeRedirect from "./pages/Shared/HomeRedirect";
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true); // Wait for Firebase to initialize
@@ -50,6 +52,7 @@ export default function App() {
         <ScrollToTop />
         <Routes>
           {/* Public Auth Routes */}
+          <Route path="/" element={<HomeRedirect />} />
           <Route element={<PublicRoute />}>
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
@@ -59,9 +62,9 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<RoleRoute allowedRoles={["super_admin"]} />}>
               <Route element={<AppLayout />}>
-                <Route path="/" element={<Home />} />
+                <Route path="/admin/home" element={<Home />} />
                 <Route
-                  path="/insurance-companies"
+                  path="/admin/insurance-companies"
                   element={<InsuranceCompanyPage />}
                 />
               </Route>
@@ -72,12 +75,16 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<RoleRoute allowedRoles={["towing_company"]} />}>
               <Route element={<AppLayout />}>
-                <Route path="/staff-management" element={<UserManagement />} />
+                <Route path="/company/home" element={<TowingCompanyHome />} />
                 <Route
-                  path="/incidents-analytics"
+                  path="/company/staff-management"
+                  element={<UserManagement />}
+                />
+                <Route
+                  path="/company/incidents-analytics"
                   element={<IncidentsAnalytics />}
                 />
-                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/company/profile" element={<ProfilePage />} />
               </Route>
             </Route>
           </Route>

@@ -1,7 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router";
-
-// Assume these icons are imported from an icon library
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
+import { Link, useLocation } from "react-router-dom";
 import {
   ChevronDownIcon,
   GridIcon,
@@ -13,6 +11,10 @@ import {
 } from "../icons";
 import { FiHome } from "react-icons/fi";
 import { useSidebar } from "../context/SidebarContext";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
+import { auth, db } from "../../firebase";
 
 type NavItem = {
   name: string;
@@ -21,39 +23,47 @@ type NavItem = {
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
 };
 
-const navItems: NavItem[] = [
+// Role-specific menu items
+const superAdminNavItems: NavItem[] = [
   {
     icon: <GridIcon />,
     name: "Dashboard",
     subItems: [{ name: "Ecommerce", path: "/", pro: false }],
-  },
-
-  {
-    icon: <UserCircleIcon />,
-    name: "User Profile",
-    path: "/profile",
-  },
-  {
-    icon: <UserCircleIcon />,
-    name: "Staff Management",
-    path: "/staff-management",
-  },
-  {
-    icon: <PieChartIcon />,
-    name: "Incidents Analytics",
-    path: "/incidents-analytics",
   },
   {
     icon: <FiHome />,
     name: "Insurance Companies",
     path: "/insurance-companies",
   },
+];
+
+const towingCompanyNavItems: NavItem[] = [
+  {
+    icon: <FiHome />,
+    name: "Home",
+    path: "/company/home",
+  },
+  {
+    icon: <UserCircleIcon />,
+    name: "Company Profile",
+    path: "/company/profile",
+  },
+  {
+    icon: <UserCircleIcon />,
+    name: "Staff Management",
+    path: "/company/staff-management",
+  },
+  {
+    icon: <PieChartIcon />,
+    name: "Incidents Analytics",
+    path: "/company/incidents-analytics",
+  },
   {
     name: "Tow Management",
     icon: <ListIcon />,
     subItems: [
-      { name: "Tow Operators", path: "/tow-operators" },
-      { name: "Tow Requests", path: "/tow-requests" },
+      { name: "Tow Operators", path: "/company/tow-operators" },
+      { name: "Tow Requests", path: "/company/tow-requests" },
     ],
   },
 ];
@@ -72,7 +82,6 @@ const othersItems: NavItem[] = [
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const location = useLocation();
-
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main" | "others";
     index: number;
@@ -81,8 +90,43 @@ const AppSidebar: React.FC = () => {
     {}
   );
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [user, setUser] = useState<User | null>(null);
+  const [role, setRole] = useState<string>("");
+  const [loading, setLoading] = useState(true);
 
-  // const isActive = (path: string) => location.pathname === path;
+  // Fetch user and role from Firebase
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setUser(firebaseUser);
+      setLoading(false);
+
+      if (firebaseUser) {
+        const currentDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+        setRole((currentDoc.data()?.role as string) || "");
+      } else {
+        setRole("");
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Select menu items based on role
+  const navItems = useMemo(() => {
+    if (role === "super_admin") {
+      return superAdminNavItems;
+    } else if (role === "towing_company") {
+      return towingCompanyNavItems;
+    }
+    return [];
+  }, [role]);
+
+  // Show authentication items only for unauthenticated users
+  const filteredOthersItems = useMemo(() => {
+    // Hide authentication items if user is logged in
+    return user === null && role === "" ? othersItems : [];
+  }, [user, role]);
+
   const isActive = useCallback(
     (path: string) => location.pathname === path,
     [location.pathname]
@@ -91,7 +135,7 @@ const AppSidebar: React.FC = () => {
   useEffect(() => {
     let submenuMatched = false;
     ["main", "others"].forEach((menuType) => {
-      const items = menuType === "main" ? navItems : othersItems;
+      const items = menuType === "main" ? navItems : filteredOthersItems;
       items.forEach((nav, index) => {
         if (nav.subItems) {
           nav.subItems.forEach((subItem) => {
@@ -110,7 +154,7 @@ const AppSidebar: React.FC = () => {
     if (!submenuMatched) {
       setOpenSubmenu(null);
     }
-  }, [location, isActive]);
+  }, [location, isActive, navItems, filteredOthersItems]);
 
   useEffect(() => {
     if (openSubmenu !== null) {
@@ -155,7 +199,7 @@ const AppSidebar: React.FC = () => {
               }`}
             >
               <span
-                className={`menu-item-icon-size  ${
+                className={`menu-item-icon-size ${
                   openSubmenu?.type === menuType && openSubmenu?.index === index
                     ? "menu-item-icon-active"
                     : "menu-item-icon-inactive"
@@ -189,7 +233,7 @@ const AppSidebar: React.FC = () => {
                   className={`menu-item-icon-size ${
                     isActive(nav.path)
                       ? "menu-item-icon-active"
-                      : "menu-item-icon-inactive"
+                      : "menu-item-inactive"
                   }`}
                 >
                   {nav.icon}
@@ -260,6 +304,10 @@ const AppSidebar: React.FC = () => {
     </ul>
   );
 
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <aside
       className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
@@ -327,7 +375,7 @@ const AppSidebar: React.FC = () => {
               </h2>
               {renderMenuItems(navItems, "main")}
             </div>
-            <div className="">
+            <div>
               <h2
                 className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
                   !isExpanded && !isHovered
@@ -341,11 +389,10 @@ const AppSidebar: React.FC = () => {
                   <HorizontaLDots />
                 )}
               </h2>
-              {renderMenuItems(othersItems, "others")}
+              {renderMenuItems(filteredOthersItems, "others")}
             </div>
           </div>
         </nav>
-        {/* {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null} */}
       </div>
     </aside>
   );

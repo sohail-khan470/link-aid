@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom"; // fixed import
+import { Link, Navigate, useNavigate } from "react-router-dom"; // fixed import
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
@@ -10,7 +10,8 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
 } from "firebase/auth";
-import { auth } from "../../../firebase";
+import { auth, db } from "../../../firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -18,11 +19,26 @@ export default function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const navigate = useNavigate();
+
+  const redirectUserByRole = async (uid: string) => {
+    const userDoc = await getDoc(doc(db, "users", uid));
+    const role = userDoc.data()?.role;
+
+    if (role === "super_admin") {
+      navigate("/admin/home", { replace: true });
+    } else if (role === "towing_company") {
+      navigate("/company/home", { replace: true });
+    } else {
+      navigate("/unauthorized", { replace: true });
+    }
+  };
 
   const handleSignIn = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCred = await signInWithEmailAndPassword(auth, email, password);
+      await redirectUserByRole(userCred.user.uid);
     } catch (error: any) {
       console.error("Sign-in failed:", error.message);
       setErrorMsg("Invalid email or password.");
@@ -32,7 +48,8 @@ export default function SignInForm() {
   const handleGoogleSignIn = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const userCred = await signInWithPopup(auth, provider);
+      await redirectUserByRole(userCred.user.uid);
     } catch (error: any) {
       console.error("Google sign-in failed:", error.message);
       setErrorMsg("Google sign-in failed.");

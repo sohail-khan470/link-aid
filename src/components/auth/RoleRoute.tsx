@@ -1,7 +1,5 @@
-// components/auth/RoleRoute.tsx
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import LoadingSpinner from "../ui/LoadingSpinner";
-import Unauthorised from "../../pages/Shared/Unauthourised/Unauthorised";
 import { useUserRole } from "../../hooks/use-role";
 
 type RoleRouteProps = {
@@ -10,9 +8,18 @@ type RoleRouteProps = {
 
 export const RoleRoute = ({ allowedRoles }: RoleRouteProps) => {
   const role = useUserRole();
+  const location = useLocation();
 
   if (role === null) return <LoadingSpinner />;
-  if (!allowedRoles.includes(role)) return <Unauthorised />;
+
+  // If role is not allowed, redirect based on role
+  if (!allowedRoles.includes(role)) {
+    if (role === "super_admin")
+      return <Navigate to="/" state={{ from: location }} replace />;
+    if (role === "towing_company")
+      return <Navigate to="/company/home" state={{ from: location }} replace />;
+    return <Navigate to="/unauthorized" replace />;
+  }
 
   return <Outlet />;
 };
