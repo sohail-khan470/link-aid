@@ -1,361 +1,483 @@
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   collection,
+  query,
+  where,
   getDocs,
-  doc,
+  addDoc,
   updateDoc,
   deleteDoc,
-  setDoc,
+  doc,
 } from "firebase/firestore";
-import { User } from "../../types/user.types";
-import { FiEye, FiEyeOff, FiPlus, FiX, FiTrash2 } from "react-icons/fi";
-import { auth, db } from "../../../../firebase";
-import LoadingSpinner from "../../../components/ui/LoadingSpinner";
-import PageMeta from "../../../components/common/PageMeta";
+import { db, auth } from "../../../../firebase";
+import {
+  FiEdit,
+  FiTrash2,
+  FiPlus,
+  FiUser,
+  FiX,
+  FiClock,
+  FiMapPin,
+} from "react-icons/fi";
+import { FaTruck } from "react-icons/fa";
 
-export default function UserManagement() {
-  const [users, setUsers] = useState<User[]>([]);
+interface TowingOperator {
+  id?: string;
+  companyId: string;
+  name: string;
+  plateNumber: string;
+  status: boolean;
+  isVerified: boolean;
+  userId: string;
+  etaToCurrentJob?: number;
+  location?: [string, string];
+  vehicleTypes?: string[];
+}
+
+const UserManagement = () => {
+  const [company, setCompany] = useState<any>(null);
+  const [operators, setOperators] = useState<TowingOperator[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showAddUserForm, setShowAddUserForm] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const currentUser = auth.currentUser;
-
-  const VITE_FIREBASE_API_KEY = import.meta.env.VITE_FIREBASE_API_KEY;
-
-  // New user form state
-  const [newUser, setNewUser] = useState({
-    fullName: "",
-    email: "",
-    password: "",
-    phone: "",
-    role: "civilian",
+  const [openDialog, setOpenDialog] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    type: "",
   });
+  const [currentOperator, setCurrentOperator] = useState<TowingOperator>({
+    companyId: "",
+    name: "",
+    plateNumber: "",
+    status: true,
+    isVerified: false,
+    userId: "",
+    etaToCurrentJob: 0,
+    location: ["59.3271N", "18.0643E"],
+    vehicleTypes: [],
+  });
+  const [isEditing, setIsEditing] = useState(false);
 
-  // Fetch users from Firebase
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      const querySnapshot = await getDocs(collection(db, "users"));
-      const usersData = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as User[];
-      setUsers(usersData);
-    } catch (err) {
-      setError("Failed to fetch users");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+  const loggedInUserId = auth.currentUser?.uid;
+
+  // Fetch company and operators
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        // Get company for logged-in admin
+        const companiesRef = collection(db, "towing_companies");
+        const companyQuery = query(
+          companiesRef,
+          where("adminId", "==", loggedInUserId)
+        );
+        const companySnapshot = await getDocs(companyQuery);
+
+        if (companySnapshot.empty)
+          throw new Error("No company found for this admin");
+
+        const companyData = companySnapshot.docs[0].data();
+        companyData.id = companySnapshot.docs[0].id;
+        setCompany(companyData);
+
+        // Get operators for this company
+        const operatorsRef = collection(db, "towing_operators");
+        const operatorsQuery = query(
+          operatorsRef,
+          where("companyId", "==", companyData.id)
+        );
+        const operatorsSnapshot = await getDocs(operatorsQuery);
+
+        const operatorsData = operatorsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as TowingOperator[];
+
+        setOperators(operatorsData);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (loggedInUserId) fetchData();
+  }, [loggedInUserId]);
+
+  // Handle form input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setCurrentOperator((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
-  // Update user role
-  const updateUserRole = async (userId: string, newRole: string) => {
-    try {
-      await updateDoc(doc(db, "users", userId), { role: newRole });
-      fetchUsers(); // Refresh the list
-    } catch (err) {
-      setError("Failed to update user role");
-      console.error(err);
-    }
+  // Handle location changes
+  const handleLocationChange = (index: number, value: string) => {
+    setCurrentOperator((prev) => {
+      const newLocation = [...prev.location!];
+      newLocation[index] = value;
+      return { ...prev, location: newLocation as [string, string] };
+    });
   };
 
-  // Delete user
-  const deleteUser = async (userId: string) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
-
+  // Submit operator form
+  const handleSubmit = async () => {
     try {
-      await deleteDoc(doc(db, "users", userId));
-      fetchUsers(); // Refresh the list
-    } catch (err) {
-      setError("Failed to delete user");
-      console.error(err);
-    }
-  };
+      if (!company?.id) throw new Error("Company not found");
 
-  // Register new user without signing in
-  const registerUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+      const operatorData = {
+        ...currentOperator,
+        companyId: company.id,
+      };
 
-    try {
-      // Create auth user using the Firebase REST API to avoid auto-signin
-      const response = await fetch(
-        `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${VITE_FIREBASE_API_KEY}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: newUser.email,
-            password: newUser.password,
-            returnSecureToken: true,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error.message || "Failed to register user");
+      if (isEditing && currentOperator.id) {
+        await updateDoc(
+          doc(db, "towing_operators", currentOperator.id),
+          operatorData
+        );
+        setOperators(
+          operators.map((op) =>
+            op.id === currentOperator.id ? operatorData : op
+          )
+        );
+        showSnackbar("Operator updated successfully", "success");
+      } else {
+        const docRef = await addDoc(
+          collection(db, "towing_operators"),
+          operatorData
+        );
+        setOperators([...operators, { ...operatorData, id: docRef.id }]);
+        showSnackbar("Operator added successfully", "success");
       }
 
-      // Create user document in Firestore
-      await setDoc(doc(db, "users", data.localId), {
-        fullName: newUser.fullName,
-        email: newUser.email,
-        phone: newUser.phone,
-        role: newUser.role,
-        isVerified: false,
-        createdAt: new Date(),
-      });
-
-      // Refresh user list and reset form
-      fetchUsers();
-      setShowAddUserForm(false);
-      setNewUser({
-        fullName: "",
-        email: "",
-        password: "",
-        phone: "",
-        role: "civilian",
-      });
+      handleCloseDialog();
     } catch (err: any) {
-      setError(err.message || "Failed to register user");
-      console.error(err);
+      showSnackbar(`Error: ${err.message}`, "error");
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  // Delete operator
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, "towing_operators", id));
+      setOperators(operators.filter((op) => op.id !== id));
+      showSnackbar("Operator deleted successfully", "success");
+    } catch (err: any) {
+      showSnackbar(`Error: ${err.message}`, "error");
+    }
+  };
 
-  if (loading) {
+  // Open dialog for editing or adding
+  const openOperatorDialog = (operator?: TowingOperator) => {
+    if (operator) {
+      setCurrentOperator(operator);
+      setIsEditing(true);
+    } else {
+      setCurrentOperator({
+        companyId: company?.id || "",
+        name: "",
+        plateNumber: "",
+        status: true,
+        isVerified: false,
+        userId: "",
+        etaToCurrentJob: 0,
+        location: ["59.3271N", "18.0643E"],
+        vehicleTypes: [],
+      });
+      setIsEditing(false);
+    }
+    setOpenDialog(true);
+  };
+
+  // Close dialog
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+
+  // Show snackbar notification
+  const showSnackbar = (message: string, type: string) => {
+    setSnackbar({ open: true, message, type });
+    setTimeout(() => setSnackbar((prev) => ({ ...prev, open: false })), 3000);
+  };
+
+  if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
-        <LoadingSpinner />
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
-  }
+
+  if (error)
+    return (
+      <div className="p-4 bg-red-100 border-l-4 border-red-500 text-red-700">
+        <p>{error}</p>
+      </div>
+    );
+
+  if (!company)
+    return (
+      <div className="p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700">
+        <p>No company found for this user</p>
+      </div>
+    );
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-200">
-      <PageMeta
-        title="User Management"
-        description="Manage application users"
-      />
+    <div className="container mx-auto px-4 py-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">
+          {company.name} - Staff Management
+        </h1>
+        <button
+          onClick={() => openOperatorDialog()}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center"
+        >
+          <FiPlus className="mr-2" />
+          Add New Operator
+        </button>
+      </div>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            User Management
-          </h1>
-          <button
-            onClick={() => setShowAddUserForm(!showAddUserForm)}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
-          >
-            {showAddUserForm ? (
-              <>
-                <FiX className="w-5 h-5" />
-                Cancel
-              </>
-            ) : (
-              <>
-                <FiPlus className="w-5 h-5" />
-                Add New User
-              </>
-            )}
-          </button>
-        </div>
-
-        {error && (
-          <div className="text-red-500 mb-4 dark:text-red-400">{error}</div>
-        )}
-
-        {/* Add User Form */}
-        {showAddUserForm && (
-          <div className="mb-8 p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-              Register New User
-            </h2>
-            <form onSubmit={registerUser} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  value={newUser.fullName}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, fullName: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={newUser.email}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, email: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={newUser.password}
-                    onChange={(e) =>
-                      setNewUser({ ...newUser, password: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    required
-                    minLength={6}
-                  />
+      <div className="bg-white shadow rounded-lg overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Operator
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Vehicle
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {operators.map((operator) => (
+              <tr key={operator.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <FiUser className="text-blue-600" />
+                    </div>
+                    <div className="ml-4">
+                      <div className="text-sm font-medium text-gray-900">
+                        {operator.name}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {operator.userId}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <FaTruck className="text-gray-500 mr-2" />
+                    <div className="text-sm font-medium text-gray-900">
+                      {operator.plateNumber}
+                    </div>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex flex-col space-y-1">
+                    <span
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        operator.status
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {operator.status ? "Active" : "Inactive"}
+                    </span>
+                    <span
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        operator.isVerified
+                          ? "bg-blue-100 text-blue-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {operator.isVerified ? "Verified" : "Unverified"}
+                    </span>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400"
+                    onClick={() => openOperatorDialog(operator)}
+                    className="text-blue-600 hover:text-blue-900 mr-4"
                   >
-                    {showPassword ? (
-                      <FiEyeOff className="w-5 h-5" />
-                    ) : (
-                      <FiEye className="w-5 h-5" />
-                    )}
+                    <FiEdit />
                   </button>
+                  <button
+                    onClick={() => operator.id && handleDelete(operator.id)}
+                    className="text-red-600 hover:text-red-900"
+                  >
+                    <FiTrash2 />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Operator Form Dialog */}
+      {openDialog && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div className="p-6">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                {isEditing ? "Edit Operator" : "Add New Operator"}
+              </h2>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Name
+                  </label>
+                  <input
+                    name="name"
+                    value={currentOperator.name}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Plate Number
+                  </label>
+                  <input
+                    name="plateNumber"
+                    value={currentOperator.plateNumber}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    User ID
+                  </label>
+                  <input
+                    name="userId"
+                    value={currentOperator.userId}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    ETA to Job (minutes)
+                  </label>
+                  <div className="flex">
+                    <span className="inline-flex items-center px-3 py-2 border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm rounded-l-md">
+                      <FiClock />
+                    </span>
+                    <input
+                      name="etaToCurrentJob"
+                      type="number"
+                      value={currentOperator.etaToCurrentJob}
+                      onChange={handleInputChange}
+                      className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Location
+                  </label>
+                  <div className="flex">
+                    <span className="inline-flex items-center px-3 py-2 border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm rounded-l-md">
+                      <FiMapPin />
+                    </span>
+                    <input
+                      value={currentOperator.location?.[0]}
+                      onChange={(e) => handleLocationChange(0, e.target.value)}
+                      className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Latitude"
+                    />
+                    <input
+                      value={currentOperator.location?.[1]}
+                      onChange={(e) => handleLocationChange(1, e.target.value)}
+                      className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Longitude"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center">
+                  <input
+                    name="status"
+                    type="checkbox"
+                    checked={currentOperator.status}
+                    onChange={handleInputChange}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label className="ml-2 block text-sm text-gray-700">
+                    Active Status
+                  </label>
+                </div>
+
+                <div className="flex items-center">
+                  <input
+                    name="isVerified"
+                    type="checkbox"
+                    checked={currentOperator.isVerified}
+                    onChange={handleInputChange}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label className="ml-2 block text-sm text-gray-700">
+                    Verified Operator
+                  </label>
                 </div>
               </div>
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  value={newUser.phone}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, phone: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Role
-                </label>
-                <select
-                  value={newUser.role}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, role: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                >
-                  <option value="civilian">Civilian</option>
-                  <option value="insurer">Insurer</option>
-                  <option value="responder">Responder</option>
-                  <option value="tow_operator">Tow Operator</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-
+            <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse rounded-b-lg">
               <button
-                type="submit"
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg"
+                onClick={handleSubmit}
+                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
               >
-                Register User
+                {isEditing ? "Update Operator" : "Add Operator"}
               </button>
-            </form>
+              <button
+                onClick={handleCloseDialog}
+                className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
-        )}
-
-        {/* Users Table */}
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
-            <thead className="bg-gray-100 dark:bg-gray-700">
-              <tr>
-                <th className="px-6 py-3 text-left text-gray-800 dark:text-gray-200">
-                  S:No
-                </th>
-                <th className="px-6 py-3 text-left text-gray-800 dark:text-gray-200">
-                  Name
-                </th>
-                <th className="px-6 py-3 text-left text-gray-800 dark:text-gray-200">
-                  Email
-                </th>
-                <th className="px-6 py-3 text-left text-gray-800 dark:text-gray-200">
-                  Phone
-                </th>
-                <th className="px-6 py-3 text-left text-gray-800 dark:text-gray-200">
-                  Role
-                </th>
-                <th className="px-6 py-3 text-left text-gray-800 dark:text-gray-200">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {users.map((user, index) => (
-                <tr
-                  key={user.id}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-700/50"
-                >
-                  <td className="px-6 py-4 text-gray-900 dark:text-gray-100">
-                    {index + 1}
-                  </td>
-                  <td className="px-6 py-4 text-gray-900 dark:text-gray-100">
-                    {user.fullName}
-                  </td>
-                  <td className="px-6 py-4 text-gray-900 dark:text-gray-100">
-                    {user.email}
-                  </td>
-                  <td className="px-6 py-4 text-gray-900 dark:text-gray-100">
-                    {user.phone || "-"}
-                  </td>
-                  <td className="px-6 py-4">
-                    <select
-                      value={user.role}
-                      onChange={(e) => updateUserRole(user.id, e.target.value)}
-                      disabled={user.id === currentUser?.uid}
-                      className="border rounded p-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                    >
-                      <option value="civilian">Civilian</option>
-                      <option value="insurer">Insurer</option>
-                      <option value="responder">Responder</option>
-                      <option value="tow_operator">Tow Operator</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                  </td>
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={() => deleteUser(user.id)}
-                      disabled={user.id === currentUser?.uid}
-                      className="flex items-center gap-1 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 disabled:text-gray-400 dark:disabled:text-gray-500"
-                    >
-                      <FiTrash2 className="w-5 h-5" />
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
-      </div>
+      )}
+
+      {/* Snackbar Notification */}
+      {snackbar.open && (
+        <div
+          className={`fixed bottom-4 right-4 p-4 rounded-md shadow-lg ${
+            snackbar.type === "success" ? "bg-green-500" : "bg-red-500"
+          } text-white`}
+        >
+          <div className="flex items-center justify-between">
+            <div>{snackbar.message}</div>
+            <button
+              onClick={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+              className="ml-4"
+            >
+              <FiX />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export default UserManagement;

@@ -41,29 +41,29 @@ const towingCompanyNavItems: NavItem[] = [
   {
     icon: <FiHome />,
     name: "Home",
-    path: "/company/home",
+    path: "/towing/home",
   },
   {
     icon: <UserCircleIcon />,
     name: "Company Profile",
-    path: "/company/profile",
+    path: "/towing/profile",
   },
   {
     icon: <UserCircleIcon />,
     name: "Staff Management",
-    path: "/company/staff-management",
+    path: "/towing/staff-management",
   },
   {
     icon: <PieChartIcon />,
     name: "Incidents Analytics",
-    path: "/company/incidents-analytics",
+    path: "/towing/incidents-analytics",
   },
   {
     name: "Tow Management",
     icon: <ListIcon />,
     subItems: [
-      { name: "Tow Operators", path: "/company/tow-operators" },
-      { name: "Tow Requests", path: "/company/tow-requests" },
+      { name: "Tow Operators", path: "/towing/tow-operators" },
+      { name: "Tow Requests", path: "/towing/tow-requests" },
     ],
   },
 ];

@@ -24,7 +24,9 @@ export default function HomeRedirect() {
         if (role === "super_admin") {
           setRedirectPath("/admin/home");
         } else if (role === "towing_company") {
-          setRedirectPath("/company/home");
+          setRedirectPath("/towing/home");
+        } else if (role === "insurance_company") {
+          setRedirectPath("/insurance/home");
         } else {
           setRedirectPath("/unauthorized");
         }

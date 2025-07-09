@@ -20,10 +20,12 @@ import Unauthorized from "./pages/Shared/Unauthourised/Unauthorised";
 import { RoleRoute } from "./components/auth/RoleRoute";
 import TowingCompanyHome from "./pages/TowingCompnayDashboard/Dashboard/TowingCompanyHome";
 import HomeRedirect from "./pages/Shared/HomeRedirect";
+import InsuranceDashboard from "./pages/InsuranceCompanyDasboard/InsuranceDashboard";
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true); // Wait for Firebase to initialize
   const [role, setrole] = useState("");
+  const [firebaseUser, setFirebaseUser] = useState<any | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -33,6 +35,7 @@ export default function App() {
 
       if (firebaseUser) {
         const currentDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+        setFirebaseUser(currentDoc.data());
         setrole(currentDoc.data()?.role as string);
       }
     });
@@ -40,7 +43,7 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  console.log(role);
+  console.log(firebaseUser);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -75,16 +78,39 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<RoleRoute allowedRoles={["towing_company"]} />}>
               <Route element={<AppLayout />}>
-                <Route path="/company/home" element={<TowingCompanyHome />} />
+                <Route path="/towing/home" element={<TowingCompanyHome />} />
                 <Route
-                  path="/company/staff-management"
+                  path="/towing/staff-management"
                   element={<UserManagement />}
                 />
                 <Route
-                  path="/company/incidents-analytics"
+                  path="/towing/incidents-analytics"
                   element={<IncidentsAnalytics />}
                 />
-                <Route path="/company/profile" element={<ProfilePage />} />
+                <Route path="/towing/profile" element={<ProfilePage />} />
+                <Route path="/towing/requests" element={<ProfilePage />} />
+                <Route path="/towing/profile" element={<ProfilePage />} />
+              </Route>
+            </Route>
+          </Route>
+
+          {/* Insurance company Dashboard */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<RoleRoute allowedRoles={["insurance_company"]} />}>
+              <Route element={<AppLayout />}>
+                <Route
+                  path="/insurance/home"
+                  element={<InsuranceDashboard />}
+                />
+                <Route
+                  path="/insurance/staff-management"
+                  element={<UserManagement />}
+                />
+                <Route
+                  path="/insurance/incidents-analytics"
+                  element={<IncidentsAnalytics />}
+                />
+                <Route path="/insurance/profile" element={<ProfilePage />} />
               </Route>
             </Route>
           </Route>
