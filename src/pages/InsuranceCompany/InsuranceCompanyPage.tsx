@@ -1,10 +1,18 @@
 import { useEffect, useState } from "react";
-import { useInsuranceCompanyStore } from "../../store/insurance-company.store";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
 import { FiPlus, FiEdit2, FiTrash2 } from "react-icons/fi";
 import PageMeta from "../../components/common/PageMeta";
-import { InsuranceCompany } from "../types/InsuranceCompany.types";
 import { toast } from "react-toastify";
+import { InsuranceCompany } from "../types/InsuranceCompany.types";
 
 const COLORS = {
   light: {
@@ -28,21 +36,16 @@ const COLORS = {
 };
 
 const InsuranceCompanyPage = () => {
-  const {
-    fetchAllCompanies,
-    insuranceCompanies,
-    loading,
-    error,
-    addCompany,
-    updateCompany,
-    deleteCompany,
-  } = useInsuranceCompanyStore();
+  const [insuranceCompanies, setInsuranceCompanies] = useState<
+    InsuranceCompany[]
+  >([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [showForm, setShowForm] = useState(false);
   const [currentCompany, setCurrentCompany] = useState<InsuranceCompany | null>(
     null
   );
-  console.log(currentCompany);
   const [formData, setFormData] = useState({
     companyName: "",
     contactEmail: "",
@@ -50,9 +53,31 @@ const InsuranceCompanyPage = () => {
   });
   const [formLoading, setFormLoading] = useState(false);
 
+  const db = getFirestore();
+
   useEffect(() => {
-    fetchAllCompanies();
-  }, []);
+    const fetchCompanies = async () => {
+      try {
+        setLoading(true);
+        const querySnapshot = await getDocs(
+          collection(db, "insurance_company")
+        );
+        const companies = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as InsuranceCompany[];
+        setInsuranceCompanies(companies);
+        setError(null);
+      } catch (err) {
+        setError("Failed to fetch companies");
+        console.error("Error fetching companies:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCompanies();
+  }, [db]);
 
   useEffect(() => {
     if (error) {
@@ -73,10 +98,17 @@ const InsuranceCompanyPage = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this company?")) {
       try {
-        await deleteCompany(id);
+        setLoading(true);
+        await deleteDoc(doc(db, "insurance_company", id));
+        setInsuranceCompanies((prev) =>
+          prev.filter((company) => company.id !== id)
+        );
         toast.success("Company deleted successfully");
       } catch (error) {
+        setError("Failed to delete company");
         toast.error("Failed to delete company");
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -92,14 +124,34 @@ const InsuranceCompanyPage = () => {
 
     try {
       if (currentCompany) {
-        await updateCompany(currentCompany.id, formData);
+        // Update existing company
+        await updateDoc(
+          doc(db, "insurance_company", currentCompany.id),
+          formData
+        );
+        setInsuranceCompanies((prev) =>
+          prev.map((company) =>
+            company.id === currentCompany.id
+              ? { ...company, ...formData }
+              : company
+          )
+        );
         toast.success("Company updated successfully");
       } else {
-        await addCompany(formData);
+        // Add new company
+        const docRef = await addDoc(
+          collection(db, "insurance_company"),
+          formData
+        );
+        setInsuranceCompanies((prev) => [
+          ...prev,
+          { id: docRef.id, ...formData },
+        ]);
         toast.success("Company added successfully");
       }
       setShowForm(false);
     } catch (error) {
+      setError("Operation failed");
       toast.error("Operation failed");
     } finally {
       setFormLoading(false);
@@ -155,7 +207,6 @@ const InsuranceCompanyPage = () => {
         </div>
 
         {/* Company List */}
-        {/* Company List */}
         <div
           className={`rounded-xl shadow-sm border ${COLORS.light.card} ${COLORS.dark.card}`}
         >
@@ -167,7 +218,7 @@ const InsuranceCompanyPage = () => {
 
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className={`${COLORS.light.card}`}>
+              <thead className={COLORS.light.card}>
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                     Company

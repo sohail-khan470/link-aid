@@ -1,17 +1,42 @@
+import { useEffect, useState } from "react";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
-import { useAuthStore } from "../../store/auth.store";
-import { useEffect } from "react";
 import PageMeta from "../../components/common/PageMeta";
+import { auth, db } from "../../../firebase";
 
 const ProfilePage: React.FC = () => {
-  const { user, userProfile, fetchUserProfile, loading, error } =
-    useAuthStore();
+  const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (user) fetchUserProfile(user.uid);
-  }, [user, fetchUserProfile]);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        try {
+          const docRef = doc(db, "users", currentUser.uid);
+          const docSnap = await getDoc(docRef);
 
-  console.log(userProfile);
+          if (docSnap.exists()) {
+            setUserProfile(docSnap.data());
+          } else {
+            setError("Profile not found.");
+          }
+        } catch (err) {
+          console.error("Error fetching user profile:", err);
+          setError("Failed to fetch user profile.");
+        }
+      } else {
+        setError("User not signed in.");
+      }
+
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const formatDate = (timestamp: { seconds: number; nanoseconds: number }) => {
     return new Date(timestamp.seconds * 1000).toLocaleDateString("en-US", {
@@ -36,9 +61,7 @@ const ProfilePage: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
             Profile Not Found
           </h1>
-          <p className="text-gray-600 dark:text-gray-300">
-            {error || "The requested user profile could not be loaded."}
-          </p>
+          <p className="text-gray-600 dark:text-gray-300">{error}</p>
         </div>
       </div>
     );
@@ -97,7 +120,7 @@ const ProfilePage: React.FC = () => {
                   : "N/A"
               }
             />
-            <ProfileField label="User ID" value={user?.uid} mono />
+            <ProfileField label="User ID" value={user?.uid || ""} mono />
           </div>
         </div>
       </div>

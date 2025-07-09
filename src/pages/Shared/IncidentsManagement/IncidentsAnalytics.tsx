@@ -1,6 +1,11 @@
-import { useEffect } from "react";
-import { useIncidentsStore } from "../../store/incidents.store";
-import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import { useEffect, useState } from "react";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  Timestamp,
+} from "firebase/firestore";
+import LoadingSpinner from "../../../components/ui/LoadingSpinner";
 import { FiAlertCircle, FiClock, FiCalendar } from "react-icons/fi";
 import {
   BarChart,
@@ -10,8 +15,19 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import PageMeta from "../../components/common/PageMeta";
-import CountryMap from "../../components/ecommerce/CountryMap";
+import PageMeta from "../../../components/common/PageMeta";
+import CountryMap from "../../../components/ecommerce/CountryMap";
+
+interface Incident {
+  id: string;
+  vehicle?: string;
+  timestamp: Timestamp | Date;
+  location?: {
+    lat: number;
+    lng: number;
+  };
+  // Add other incident properties as needed
+}
 
 const COLORS = {
   light: {
@@ -39,11 +55,35 @@ const COLORS = {
 };
 
 const IncidentsAnalytics = () => {
-  const { incidents, fetchAllIncidents, loading, error } = useIncidentsStore();
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const db = getFirestore();
+
+  console.log(incidents);
 
   useEffect(() => {
-    fetchAllIncidents();
-  }, []);
+    const fetchIncidents = async () => {
+      try {
+        setLoading(true);
+        const querySnapshot = await getDocs(collection(db, "incidentReports"));
+        const incidentsData = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Incident[];
+        setIncidents(incidentsData);
+        setError(null);
+      } catch (err) {
+        setError("Failed to fetch incidents");
+        console.error("Error fetching incidents:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchIncidents();
+  }, [db]);
 
   // Get incidents by time of day
   const getTimeOfDayData = () => {
@@ -53,11 +93,12 @@ const IncidentsAnalytics = () => {
       label: `${i}:00 - ${i + 1}:00`,
     }));
 
-    incidents?.forEach((incident) => {
+    incidents.forEach((incident) => {
       try {
-        const timestamp = incident.timestamp?.seconds
-          ? new Date(incident.timestamp.seconds * 1000)
-          : new Date(incident.timestamp);
+        const timestamp =
+          incident.timestamp instanceof Timestamp
+            ? incident.timestamp.toDate()
+            : new Date(incident.timestamp);
 
         if (!isNaN(timestamp.getTime())) {
           const hour = timestamp.getHours();
@@ -76,7 +117,7 @@ const IncidentsAnalytics = () => {
   const incidentMarkers = incidents
     .filter((i) => i.location?.lat && i.location?.lng)
     .map((incident) => ({
-      latLng: [incident.location.lat, incident.location.lng],
+      latLng: [incident.location?.lat, incident.location?.lng],
       name: incident.vehicle || "Unknown vehicle",
     }));
 
@@ -84,18 +125,20 @@ const IncidentsAnalytics = () => {
   const getRecentIncidents = (limit = 10) => {
     return [...incidents]
       .sort((a, b) => {
-        const dateA = a.timestamp?.seconds
-          ? new Date(a.timestamp.seconds * 1000)
-          : new Date(a.timestamp);
-        const dateB = b.timestamp?.seconds
-          ? new Date(b.timestamp.seconds * 1000)
-          : new Date(b.timestamp);
+        const dateA =
+          a.timestamp instanceof Timestamp
+            ? a.timestamp.toDate()
+            : new Date(a.timestamp);
+        const dateB =
+          b.timestamp instanceof Timestamp
+            ? b.timestamp.toDate()
+            : new Date(b.timestamp);
         return dateB.getTime() - dateA.getTime();
       })
       .slice(0, limit);
   };
 
-  if (loading)
+  if (loading && !incidents.length) {
     return (
       <div
         className={`min-h-screen flex items-center justify-center ${COLORS.light.background} ${COLORS.dark.background}`}
@@ -103,8 +146,9 @@ const IncidentsAnalytics = () => {
         <LoadingSpinner />
       </div>
     );
+  }
 
-  if (error)
+  if (error) {
     return (
       <div
         className={`min-h-screen flex items-center justify-center text-red-500 dark:text-red-400 ${COLORS.light.background} ${COLORS.dark.background}`}
@@ -112,6 +156,7 @@ const IncidentsAnalytics = () => {
         {error}
       </div>
     );
+  }
 
   const timeData = getTimeOfDayData();
   const recentIncidents = getRecentIncidents();
@@ -190,9 +235,10 @@ const IncidentsAnalytics = () => {
                   {
                     incidents.filter((incident) => {
                       const today = new Date();
-                      const incidentDate = incident.timestamp?.seconds
-                        ? new Date(incident.timestamp.seconds * 1000)
-                        : new Date(incident.timestamp);
+                      const incidentDate =
+                        incident.timestamp instanceof Timestamp
+                          ? incident.timestamp.toDate()
+                          : new Date(incident.timestamp);
                       return (
                         incidentDate.getDate() === today.getDate() &&
                         incidentDate.getMonth() === today.getMonth() &&
@@ -258,9 +304,10 @@ const IncidentsAnalytics = () => {
           </h2>
           <div className="space-y-4">
             {recentIncidents.map((incident, index) => {
-              const incidentDate = incident.timestamp?.seconds
-                ? new Date(incident.timestamp.seconds * 1000)
-                : new Date(incident.timestamp);
+              const incidentDate =
+                incident.timestamp instanceof Timestamp
+                  ? incident.timestamp.toDate()
+                  : new Date(incident.timestamp);
 
               return (
                 <div
@@ -316,6 +363,7 @@ const IncidentsAnalytics = () => {
                 </div>
               );
             })}
+
             {/* Map View */}
             <div
               className={`p-6 rounded-xl shadow-sm border mb-12 ${COLORS.light.card} ${COLORS.dark.card}`}

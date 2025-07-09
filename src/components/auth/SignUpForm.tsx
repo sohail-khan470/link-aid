@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router-dom"; // fixed import
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Select from "../form/Select";
-import { useAuthStore } from "../../store/auth.store";
-import { useNavigate } from "react-router";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { auth, db } from "../../../firebase";
 
 export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -23,8 +24,8 @@ export default function SignUpForm() {
     password: "",
     username: "",
   });
-
-  const { signUp, error: authError, loading } = useAuthStore();
+  const [authError, setAuthError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   // Validation functions
@@ -49,6 +50,7 @@ export default function SignUpForm() {
     if (password.length < 4) {
       return "Password must be at least 4 characters long";
     }
+    return "";
   };
 
   const handleChange = (
@@ -72,32 +74,53 @@ export default function SignUpForm() {
 
   const handleSignUp = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setAuthError("");
+    setLoading(true);
 
-    // Validate all fields before submission
+    // Validate fields
     const usernameError = validateUsername(formData.username);
     const emailError = validateEmail(formData.email);
     const passwordError = validatePassword(formData.password);
-
     setErrors({
       username: usernameError,
       email: emailError,
       password: passwordError,
     });
 
-    // Prevent submission if there are validation errors
     if (usernameError || emailError || passwordError) {
+      setLoading(false);
       return;
     }
 
-    const userData = {
-      ...formData,
-      createdAt: new Date(),
-    };
-    await signUp(userData);
-    if (!authError) navigate("/");
+    try {
+      // Create user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+      const user = userCredential.user;
+
+      // Create user profile in Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        username: formData.username,
+        email: formData.email,
+        phone: formData.phone || "",
+        language: formData.language,
+        theme: formData.theme,
+        role: formData.role,
+        createdAt: serverTimestamp(),
+      });
+
+      navigate("/");
+    } catch (err: any) {
+      console.error("Sign-up failed:", err.message);
+      setAuthError(err.message || "Failed to sign up.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Language options for the dropdown
   const languages = [
     { value: "en", label: "English" },
     { value: "es", label: "Spanish" },
@@ -105,7 +128,6 @@ export default function SignUpForm() {
     { value: "de", label: "German" },
   ];
 
-  // Theme options for the dropdown
   const themes = [
     { value: "light", label: "Light" },
     { value: "dark", label: "Dark" },
@@ -132,167 +154,151 @@ export default function SignUpForm() {
               Enter your details to sign up!
             </p>
           </div>
-          <div>
-            <div className="relative py-3 sm:py-5">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200 dark:border-gray-800"></div>
-              </div>
-              <div className="relative flex justify-center text-sm"></div>
-            </div>
-            <form onSubmit={handleSignUp}>
-              <div className="space-y-5">
-                {/* Username Field */}
-                <div>
-                  <Label>
-                    Username<span className="text-error-500">*</span>
-                  </Label>
-                  <Input
-                    type="text"
-                    id="username"
-                    name="username"
-                    placeholder="Enter your username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    required
-                  />
-                  {errors.username && (
-                    <div className="text-sm text-error-500 mt-1">
-                      {errors.username}
-                    </div>
-                  )}
-                </div>
-
-                {/* Email Field */}
-                <div>
-                  <Label>
-                    Email<span className="text-error-500">*</span>
-                  </Label>
-                  <Input
-                    type="email"
-                    id="email"
-                    name="email"
-                    placeholder="Enter your email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                  />
-                  {errors.email && (
-                    <div className="text-sm text-error-500 mt-1">
-                      {errors.email}
-                    </div>
-                  )}
-                </div>
-
-                {/* Password Field */}
-                <div>
-                  <Label>
-                    Password<span className="text-error-500">*</span>
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      placeholder="Enter your password"
-                      type={showPassword ? "text" : "password"}
-                      name="password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      required
-                    />
-                    <span
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
-                    >
-                      {showPassword ? (
-                        <EyeIcon className="fill-gray-500 dark:fill-gray-400 size-5" />
-                      ) : (
-                        <EyeCloseIcon className="fill-gray-500 dark:fill-gray-400 size-5" />
-                      )}
-                    </span>
+          <form onSubmit={handleSignUp}>
+            <div className="space-y-5">
+              {/* Username */}
+              <div>
+                <Label>
+                  Username<span className="text-error-500">*</span>
+                </Label>
+                <Input
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  placeholder="Enter your username"
+                />
+                {errors.username && (
+                  <div className="text-sm text-error-500 mt-1">
+                    {errors.username}
                   </div>
-                  {errors.password && (
-                    <div className="text-sm text-error-500 mt-1">
-                      {errors.password}
-                    </div>
-                  )}
-                </div>
-
-                {/* Phone Field */}
-                <div>
-                  <Label>Phone Number</Label>
-                  <Input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    placeholder="Enter your phone number"
-                    value={formData.phone}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                {/* Language Field - Custom Select */}
-                <div>
-                  <Label>Language</Label>
-                  <Select
-                    id="language"
-                    name="language"
-                    options={languages}
-                    placeholder="Select a language"
-                    onChange={(value) =>
-                      handleChange({
-                        target: { name: "language", value },
-                      } as React.ChangeEvent<HTMLSelectElement>)
-                    }
-                    defaultValue={formData.language}
-                  />
-                </div>
-
-                {/* Theme Field - Custom Select */}
-                <div>
-                  <Label>Theme Preference</Label>
-                  <Select
-                    id="theme"
-                    name="theme"
-                    options={themes}
-                    placeholder="Select a theme"
-                    onChange={(value) =>
-                      handleChange({
-                        target: { name: "theme", value },
-                      } as React.ChangeEvent<HTMLSelectElement>)
-                    }
-                    defaultValue={formData.theme}
-                  />
-                </div>
-
-                {/* Error Display for Auth Errors */}
-                {authError && (
-                  <div className="text-sm text-error-500">{authError}</div>
                 )}
-
-                {/* Submit Button */}
-                <div>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className={`flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600 ${
-                      loading ? "opacity-70 cursor-not-allowed" : ""
-                    }`}
-                  >
-                    {loading ? "Signing Up..." : "Sign Up"}
-                  </button>
-                </div>
               </div>
-            </form>
 
-            <div className="mt-5">
-              <p className="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
-                Already have an account?{" "}
-                <Link
-                  to="/signin"
-                  className="text-brand-500 hover:text-brand-600 dark:text-brand-400"
+              {/* Email */}
+              <div>
+                <Label>
+                  Email<span className="text-error-500">*</span>
+                </Label>
+                <Input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Enter your email"
+                />
+                {errors.email && (
+                  <div className="text-sm text-error-500 mt-1">
+                    {errors.email}
+                  </div>
+                )}
+              </div>
+
+              {/* Password */}
+              <div>
+                <Label>
+                  Password<span className="text-error-500">*</span>
+                </Label>
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="Enter your password"
+                  />
+                  <span
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
+                  >
+                    {showPassword ? (
+                      <EyeIcon className="fill-gray-500 dark:fill-gray-400 size-5" />
+                    ) : (
+                      <EyeCloseIcon className="fill-gray-500 dark:fill-gray-400 size-5" />
+                    )}
+                  </span>
+                </div>
+                {errors.password && (
+                  <div className="text-sm text-error-500 mt-1">
+                    {errors.password}
+                  </div>
+                )}
+              </div>
+
+              {/* Phone */}
+              <div>
+                <Label>Phone Number</Label>
+                <Input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="Enter your phone number"
+                />
+              </div>
+
+              {/* Language */}
+              <div>
+                <Label>Language</Label>
+                <Select
+                  id="language"
+                  name="language"
+                  options={languages}
+                  onChange={(value) =>
+                    handleChange({
+                      target: { name: "language", value },
+                    } as React.ChangeEvent<HTMLSelectElement>)
+                  }
+                  defaultValue={formData.language}
+                />
+              </div>
+
+              {/* Theme */}
+              <div>
+                <Label>Theme Preference</Label>
+                <Select
+                  id="theme"
+                  name="theme"
+                  options={themes}
+                  onChange={(value) =>
+                    handleChange({
+                      target: { name: "theme", value },
+                    } as React.ChangeEvent<HTMLSelectElement>)
+                  }
+                  defaultValue={formData.theme}
+                />
+              </div>
+
+              {/* Firebase Auth Error */}
+              {authError && (
+                <div className="text-sm text-error-500">{authError}</div>
+              )}
+
+              {/* Submit */}
+              <div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600 ${
+                    loading ? "opacity-70 cursor-not-allowed" : ""
+                  }`}
                 >
-                  Sign In
-                </Link>
-              </p>
+                  {loading ? "Signing Up..." : "Sign Up"}
+                </button>
+              </div>
             </div>
+          </form>
+
+          <div className="mt-5">
+            <p className="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
+              Already have an account?{" "}
+              <Link
+                to="/signin"
+                className="text-brand-500 hover:text-brand-600 dark:text-brand-400"
+              >
+                Sign In
+              </Link>
+            </p>
           </div>
         </div>
       </div>

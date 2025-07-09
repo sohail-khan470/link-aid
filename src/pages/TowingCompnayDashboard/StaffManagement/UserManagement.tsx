@@ -7,11 +7,11 @@ import {
   deleteDoc,
   setDoc,
 } from "firebase/firestore";
-import { auth, db } from "../../../firebase";
-import LoadingSpinner from "../../components/ui/LoadingSpinner";
-import { User } from "../types/user.types";
-import PageMeta from "../../components/common/PageMeta";
+import { User } from "../../types/user.types";
 import { FiEye, FiEyeOff, FiPlus, FiX, FiTrash2 } from "react-icons/fi";
+import { auth, db } from "../../../../firebase";
+import LoadingSpinner from "../../../components/ui/LoadingSpinner";
+import PageMeta from "../../../components/common/PageMeta";
 
 export default function UserManagement() {
   const [users, setUsers] = useState<User[]>([]);

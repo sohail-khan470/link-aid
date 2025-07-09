@@ -1,16 +1,33 @@
-// src/components/common/PublicRoute.tsx
+import { useEffect, useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import { useAuthStore } from "../../store/auth.store";
+import { onAuthStateChanged } from "firebase/auth";
 import LoadingSpinner from "../ui/LoadingSpinner";
+import { auth } from "../../../firebase";
 
 const PublicRoute = () => {
-  const { user, initialized } = useAuthStore();
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
-  if (!initialized) {
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) {
     return <LoadingSpinner />;
   }
 
-  return !user ? <Outlet /> : <Navigate to="/" replace />;
+  // ✅ If user is authenticated, redirect to home
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
+
+  // ✅ Otherwise allow access to public route (e.g. SignIn)
+  return <Outlet />;
 };
 
 export default PublicRoute;
