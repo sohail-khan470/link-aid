@@ -29,15 +29,24 @@ export default function App() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log("User:", firebaseUser);
       setUser(firebaseUser);
-      setLoading(false);
 
       if (firebaseUser) {
-        const currentDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-        setFirebaseUser(currentDoc.data());
-        setrole(currentDoc.data()?.role as string);
+        try {
+          const currentDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+          const data = currentDoc.data();
+
+          if (data) {
+            setFirebaseUser(data);
+            setrole(data.role);
+          }
+        } catch (err) {
+          console.error("Error fetching user doc:", err);
+        }
       }
+
+      // ✅ Whether user exists or not, we're done loading
+      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -115,8 +124,10 @@ export default function App() {
             </Route>
           </Route>
 
-          {/* Catch all */}
-          <Route path="/unauthorized" element={<Unauthorized />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/unauthorized" element={<Unauthorized />} />
+          </Route>
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>

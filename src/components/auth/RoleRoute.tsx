@@ -7,10 +7,14 @@ type RoleRouteProps = {
 };
 
 export const RoleRoute = ({ allowedRoles }: RoleRouteProps) => {
+  const navigate = useNavigate();
+
   const role = useUserRole();
   const location = useLocation();
 
-  if (role === null) return <LoadingSpinner />;
+  if (!role) {
+    navigate("/signin", { state: { from: location }, replace: true });
+  }
 
   // If role is not allowed, redirect based on role
   if (!allowedRoles.includes(role)) {

@@ -12,6 +12,7 @@ import {
 } from "firebase/auth";
 import { auth, db } from "../../../firebase";
 import { doc, getDoc } from "firebase/firestore";
+import { GoogleSignIn } from "./GoogleSignIn";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -79,12 +80,12 @@ export default function SignInForm() {
           </div>
           <div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5">
-              <button
+              {/* <button
                 type="button"
                 onClick={handleGoogleSignIn}
                 className="inline-flex items-center justify-center gap-3 py-3 text-sm font-normal text-gray-700 transition-colors bg-gray-100 rounded-lg px-7 hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10"
               >
-                {/* Google Icon */}
+               
                 <svg
                   width="20"
                   height="20"
@@ -98,7 +99,9 @@ export default function SignInForm() {
                   <path d="..." fill="#EB4335" />
                 </svg>
                 Sign in with Google
-              </button>
+              </button> */}
+
+              <GoogleSignIn />
             </div>
 
             <div className="relative py-3 sm:py-5">

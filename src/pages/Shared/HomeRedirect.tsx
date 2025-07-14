@@ -3,16 +3,17 @@ import { Navigate } from "react-router-dom";
 import { auth, db } from "../../../firebase";
 import { doc, getDoc } from "firebase/firestore";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function HomeRedirect() {
   const [redirectPath, setRedirectPath] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkRoleAndRedirect = async () => {
-      const user = auth.currentUser;
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         setRedirectPath("/signin");
+        setLoading(false);
         return;
       }
 
@@ -36,9 +37,9 @@ export default function HomeRedirect() {
       } finally {
         setLoading(false);
       }
-    };
+    });
 
-    checkRoleAndRedirect();
+    return () => unsubscribe();
   }, []);
 
   if (loading) return <LoadingSpinner />;
