@@ -35,18 +35,23 @@ const superAdminNavItems: NavItem[] = [
     name: "Insurance Companies",
     path: "/insurance-companies",
   },
+  {
+    icon: <UserCircleIcon />,
+    name: "Profile",
+    path: "/profile",
+  },
 ];
 
 const towingCompanyNavItems: NavItem[] = [
   {
     icon: <FiHome />,
     name: "Home",
-    path: "/towing/home",
+    path: "/home",
   },
   {
     icon: <UserCircleIcon />,
     name: "Company Profile",
-    path: "/towing/profile",
+    path: "/profile",
   },
   {
     icon: <UserCircleIcon />,

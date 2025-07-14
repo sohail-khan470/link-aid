@@ -1,7 +1,7 @@
-import StatisticsChart from "../../../components/ecommerce/StatisticsChart";
-import MonthlyTarget from "../../../components/ecommerce/MonthlyTarget";
-import RecentOrders from "../../../components/ecommerce/RecentOrders";
-import PageMeta from "../../../components/common/PageMeta";
+import StatisticsChart from "../ecommerce/StatisticsChart";
+import MonthlyTarget from "../ecommerce/MonthlyTarget";
+import RecentOrders from "../ecommerce/RecentOrders";
+import PageMeta from "../common/PageMeta";
 
 export default function TowingCompanyHome() {
   return (

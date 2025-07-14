@@ -7,20 +7,22 @@ import { ScrollToTop } from "./components/common/ScrollToTop";
 import PublicRoute from "./components/auth/PublicRoute";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { useEffect, useState } from "react";
-import ProfilePage from "./pages/Profile/Profile";
+import ProfilePage from "./pages/Profile/ProfilePage";
 import IncidentsAnalytics from "./pages/Shared/IncidentsManagement/IncidentsAnalytics";
 import InsuranceCompanyPage from "./pages/InsuranceCompany/InsuranceCompanyPage";
 import { onAuthStateChanged, User } from "firebase/auth";
 import LoadingSpinner from "./components/ui/LoadingSpinner";
 import { auth, db } from "../firebase";
-import Home from "./pages/AdminDashboard/Dashboard/Home";
+
 import UserManagement from "./pages/TowingCompnayDashboard/StaffManagement/UserManagement";
 import { doc, getDoc } from "firebase/firestore";
 import Unauthorized from "./pages/Shared/Unauthourised/Unauthorised";
 import { RoleRoute } from "./components/auth/RoleRoute";
-import TowingCompanyHome from "./pages/TowingCompnayDashboard/Dashboard/TowingCompanyHome";
+import TowingCompanyHome from "./components/towing_company/TowingCompanyHome";
 import HomeRedirect from "./pages/Shared/HomeRedirect";
 import InsuranceDashboard from "./pages/InsuranceCompanyDasboard/InsuranceDashboard";
+import Home from "./pages/AdminDashboard/Dashboard/Home";
+import CompanyDashboard from "./pages/Dashboard/CompanyDashboard";
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true); // Wait for Firebase to initialize
@@ -45,7 +47,6 @@ export default function App() {
         }
       }
 
-      // ✅ Whether user exists or not, we're done loading
       setLoading(false);
     });
 
@@ -70,64 +71,59 @@ export default function App() {
             <Route path="/signup" element={<SignUp />} />
           </Route>
 
-          {/* Super Admin Dashboard */}
+          {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
-            <Route element={<RoleRoute allowedRoles={["super_admin"]} />}>
-              <Route element={<AppLayout />}>
-                <Route path="/admin/home" element={<Home />} />
-                <Route
-                  path="/admin/insurance-companies"
-                  element={<InsuranceCompanyPage />}
-                />
+            <Route element={<AppLayout />}>
+              {/* Shared Profile Route - Accessible to all authenticated users */}
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/home" element={<CompanyDashboard />} />
+
+              {/* Super Admin Dashboard */}
+              <Route element={<RoleRoute allowedRoles={["super_admin"]} />}>
+                <Route element={<AppLayout />}>
+                  <Route
+                    path="/admin/insurance-companies"
+                    element={<InsuranceCompanyPage />}
+                  />
+                </Route>
               </Route>
+
+              {/* Towing Company Dashboard */}
+              <Route element={<RoleRoute allowedRoles={["towing_company"]} />}>
+                <Route element={<AppLayout />}>
+                  <Route
+                    path="/towing/staff-management"
+                    element={<UserManagement />}
+                  />
+                  <Route
+                    path="/towing/incidents-analytics"
+                    element={<IncidentsAnalytics />}
+                  />
+                </Route>
+              </Route>
+
+              {/* Insurance company Dashboard */}
+              <Route
+                element={<RoleRoute allowedRoles={["insurance_company"]} />}
+              >
+                <Route element={<AppLayout />}>
+                  <Route
+                    path="/insurance/staff-management"
+                    element={<UserManagement />}
+                  />
+                  <Route
+                    path="/insurance/incidents-analytics"
+                    element={<IncidentsAnalytics />}
+                  />
+                </Route>
+              </Route>
+
+              {/* Unauthorized */}
+              <Route path="/unauthorized" element={<Unauthorized />} />
             </Route>
           </Route>
 
-          {/* Towing Company Dashboard */}
-          <Route element={<ProtectedRoute />}>
-            <Route element={<RoleRoute allowedRoles={["towing_company"]} />}>
-              <Route element={<AppLayout />}>
-                <Route path="/towing/home" element={<TowingCompanyHome />} />
-                <Route
-                  path="/towing/staff-management"
-                  element={<UserManagement />}
-                />
-                <Route
-                  path="/towing/incidents-analytics"
-                  element={<IncidentsAnalytics />}
-                />
-                <Route path="/towing/profile" element={<ProfilePage />} />
-                <Route path="/towing/requests" element={<ProfilePage />} />
-                <Route path="/towing/profile" element={<ProfilePage />} />
-              </Route>
-            </Route>
-          </Route>
-
-          {/* Insurance company Dashboard */}
-          <Route element={<ProtectedRoute />}>
-            <Route element={<RoleRoute allowedRoles={["insurance_company"]} />}>
-              <Route element={<AppLayout />}>
-                <Route
-                  path="/insurance/home"
-                  element={<InsuranceDashboard />}
-                />
-                <Route
-                  path="/insurance/staff-management"
-                  element={<UserManagement />}
-                />
-                <Route
-                  path="/insurance/incidents-analytics"
-                  element={<IncidentsAnalytics />}
-                />
-                <Route path="/insurance/profile" element={<ProfilePage />} />
-              </Route>
-            </Route>
-          </Route>
-
-          <Route element={<ProtectedRoute />}>
-            <Route path="/unauthorized" element={<Unauthorized />} />
-          </Route>
-
+          {/* Catch all */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>

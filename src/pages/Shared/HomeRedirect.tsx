@@ -22,12 +22,12 @@ export default function HomeRedirect() {
         const snapshot = await getDoc(docRef);
         const role = snapshot.data()?.role;
 
-        if (role === "super_admin") {
-          setRedirectPath("/admin/home");
-        } else if (role === "towing_company") {
-          setRedirectPath("/towing/home");
-        } else if (role === "insurance_company") {
-          setRedirectPath("/insurance/home");
+        if (
+          role === "super_admin" ||
+          role === "towing_company" ||
+          role === "inurance_company"
+        ) {
+          setRedirectPath("/home");
         } else {
           setRedirectPath("/unauthorized");
         }
