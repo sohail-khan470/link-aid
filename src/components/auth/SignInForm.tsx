@@ -1,15 +1,11 @@
-import { useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom"; // fixed import
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom"; // fixed import
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
 import Button from "../ui/button/Button";
-import {
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
-} from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../../../firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { GoogleSignIn } from "./GoogleSignIn";
@@ -20,12 +16,13 @@ export default function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [role, setRole] = useState("");
   const navigate = useNavigate();
 
   const redirectUserByRole = async (uid: string) => {
     const userDoc = await getDoc(doc(db, "users", uid));
-    const role = userDoc.data()?.role;
-
+    const currentRole = userDoc.data()?.role;
+    setRole(currentRole);
     if (role === "super_admin") {
       navigate("/admin/home", { replace: true });
     } else if (role === "towing_company") {
@@ -35,6 +32,12 @@ export default function SignInForm() {
     }
   };
 
+  useEffect(() => {
+    if (auth.currentUser) {
+      redirectUserByRole(auth.currentUser.uid);
+    }
+  }, [role]);
+
   const handleSignIn = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
@@ -43,17 +46,6 @@ export default function SignInForm() {
     } catch (error: any) {
       console.error("Sign-in failed:", error.message);
       setErrorMsg("Invalid email or password.");
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    try {
-      const provider = new GoogleAuthProvider();
-      const userCred = await signInWithPopup(auth, provider);
-      await redirectUserByRole(userCred.user.uid);
-    } catch (error: any) {
-      console.error("Google sign-in failed:", error.message);
-      setErrorMsg("Google sign-in failed.");
     }
   };
 

@@ -9,6 +9,8 @@ type UserRole = "super_admin" | "towing_company" | null;
 export const useUserRole = (): UserRole => {
   const [role, setRole] = useState<UserRole>(null);
 
+  console.log(role);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
