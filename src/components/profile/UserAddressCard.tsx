@@ -3,9 +3,12 @@ import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
+import { useProfile } from "../../hooks/useProfile";
 
 export default function UserAddressCard() {
   const { isOpen, openModal, closeModal } = useModal();
+  const { profile, loading } = useProfile();
+  if (loading) return null; // Handle loading state
   const handleSave = () => {
     // Handle save logic here
     console.log("Saving changes...");
@@ -35,7 +38,7 @@ export default function UserAddressCard() {
                   City/State
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  Phoenix, Arizona, United States.
+                  {profile?.location || " Not specified"}
                 </p>
               </div>
 
@@ -50,10 +53,10 @@ export default function UserAddressCard() {
 
               <div>
                 <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                  TAX ID
+                  ID
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  AS4568384
+                  {profile?.userId || "N/A"}
                 </p>
               </div>
             </div>
@@ -102,7 +105,7 @@ export default function UserAddressCard() {
 
                 <div>
                   <Label>City/State</Label>
-                  <Input type="text" value="Arizona, United States." />
+                  <Input type="text" value={profile?.location || "N/A"} />
                 </div>
 
                 <div>
