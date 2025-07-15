@@ -7,7 +7,6 @@ import { ScrollToTop } from "./components/common/ScrollToTop";
 import PublicRoute from "./components/auth/PublicRoute";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { useEffect, useState } from "react";
-import ProfilePage from "./pages/Profile/ProfilePage";
 
 import { onAuthStateChanged, User } from "firebase/auth";
 import LoadingSpinner from "./components/ui/LoadingSpinner";
