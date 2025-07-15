@@ -2,7 +2,7 @@ import PageMeta from "../../components/common/PageMeta";
 import RecentOrders from "../../components/ecommerce/RecentOrders";
 import StatisticsChart from "../../components/ecommerce/StatisticsChart";
 
-export default function InsuranceDashboard() {
+export default function InsuranceCompanyDashboard() {
   return (
     <>
       <h1>Insurance Dashboard</h1>

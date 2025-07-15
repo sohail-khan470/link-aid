@@ -3,12 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { auth, db } from "../../../firebase";
 import { doc, getDoc } from "firebase/firestore";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import TowingStaffPage from "../TowingCompany/TowingStaffPage";
+import InsuranceStaffPage from "../InsuranceCompany/InsuranceStaffPage";
 
-// Import components for each role's dashboard
-import TowingCompanyDashboard from "../../components/towing_company/TowingCompanyDashboard";
-import InsuranceCompanyDashboard from "../../components/insurance_company/InsuranceCompanyDashboard";
-
-export default function CompanyDashboard() {
+export default function StaffMangement() {
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -45,8 +43,8 @@ export default function CompanyDashboard() {
 
   if (loading) return <LoadingSpinner />;
 
-  if (role === "towing_company") return <TowingCompanyDashboard />;
-  if (role === "insurance_company") return <InsuranceCompanyDashboard />;
+  if (role === "towing_company") return <TowingStaffPage />;
+  if (role === "insurance_company") return <InsuranceStaffPage />;
   if (role === "super_admin") return <p>Super Admin Dashboard</p>;
 
   return <p>You are not authorized to access this page.</p>;

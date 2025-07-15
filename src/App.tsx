@@ -8,21 +8,21 @@ import PublicRoute from "./components/auth/PublicRoute";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { useEffect, useState } from "react";
 import ProfilePage from "./pages/Profile/ProfilePage";
-import IncidentsAnalytics from "./pages/Shared/IncidentsManagement/IncidentsAnalytics";
-import InsuranceCompanyPage from "./pages/InsuranceCompany/InsuranceCompanyPage";
+
 import { onAuthStateChanged, User } from "firebase/auth";
 import LoadingSpinner from "./components/ui/LoadingSpinner";
 import { auth, db } from "../firebase";
 
-import UserManagement from "./pages/TowingCompnayDashboard/StaffManagement/UserManagement";
+// import UserManagement from "./pages/TowingCompnayDashboard/StaffManagement/UserManagement";
 import { doc, getDoc } from "firebase/firestore";
 import Unauthorized from "./pages/Shared/Unauthourised/Unauthorised";
 import { RoleRoute } from "./components/auth/RoleRoute";
-import TowingCompanyHome from "./components/towing_company/TowingCompanyHome";
+
 import HomeRedirect from "./pages/Shared/HomeRedirect";
-import InsuranceDashboard from "./pages/InsuranceCompanyDasboard/InsuranceDashboard";
-import Home from "./pages/AdminDashboard/Dashboard/Home";
 import CompanyDashboard from "./pages/Dashboard/CompanyDashboard";
+import StaffMangement from "./pages/StaffManagement/StaffManagement";
+import TowingCompanyManagement from "./components/towing_company/TowingCompanyManagement";
+import InsuranceCompanyManagement from "./components/insurance_company/InsuranceCompanyManagement";
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true); // Wait for Firebase to initialize
@@ -78,17 +78,22 @@ export default function App() {
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/home" element={<CompanyDashboard />} />
 
+              <Route path="/staff" element={<StaffMangement />} />
+
               {/* Super Admin Dashboard */}
               <Route element={<RoleRoute allowedRoles={["super_admin"]} />}>
-                <Route element={<AppLayout />}>
-                  <Route
-                    path="/admin/insurance-companies"
-                    element={<InsuranceCompanyPage />}
-                  />
-                </Route>
+                <Route
+                  path="/admin/towing-management"
+                  element={<TowingCompanyManagement />}
+                />
+                <Route path="/admin/home" element={<CompanyDashboard />} />
+                <Route
+                  path="/admin/insurance-management"
+                  element={<InsuranceCompanyManagement />}
+                />
               </Route>
 
-              {/* Towing Company Dashboard */}
+              {/* Towing Company Dashboard 
               <Route element={<RoleRoute allowedRoles={["towing_company"]} />}>
                 <Route element={<AppLayout />}>
                   <Route
@@ -100,9 +105,9 @@ export default function App() {
                     element={<IncidentsAnalytics />}
                   />
                 </Route>
-              </Route>
+              </Route>*/}
 
-              {/* Insurance company Dashboard */}
+              {/* Insurance company Dashboard 
               <Route
                 element={<RoleRoute allowedRoles={["insurance_company"]} />}
               >
@@ -116,7 +121,7 @@ export default function App() {
                     element={<IncidentsAnalytics />}
                   />
                 </Route>
-              </Route>
+              </Route>*/}
 
               {/* Unauthorized */}
               <Route path="/unauthorized" element={<Unauthorized />} />

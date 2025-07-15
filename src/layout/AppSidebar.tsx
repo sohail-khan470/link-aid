@@ -28,17 +28,22 @@ const superAdminNavItems: NavItem[] = [
   {
     icon: <GridIcon />,
     name: "Dashboard",
-    subItems: [{ name: "Ecommerce", path: "/", pro: false }],
+    path: "/admin/home",
   },
   {
     icon: <FiHome />,
     name: "Insurance Companies",
-    path: "/insurance-companies",
+    path: "/admin/insurance-management",
   },
   {
     icon: <UserCircleIcon />,
     name: "Profile",
     path: "/profile",
+  },
+  {
+    icon: <FiHome />,
+    name: "Towing Companies",
+    path: "/admin/towing-management",
   },
 ];
 
@@ -56,7 +61,7 @@ const towingCompanyNavItems: NavItem[] = [
   {
     icon: <UserCircleIcon />,
     name: "Staff Management",
-    path: "/towing/staff-management",
+    path: "/staff",
   },
   {
     icon: <PieChartIcon />,

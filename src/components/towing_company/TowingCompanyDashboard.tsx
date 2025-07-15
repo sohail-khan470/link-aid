@@ -3,7 +3,7 @@ import MonthlyTarget from "../ecommerce/MonthlyTarget";
 import RecentOrders from "../ecommerce/RecentOrders";
 import PageMeta from "../common/PageMeta";
 
-export default function TowingCompanyHome() {
+export default function TowingCompanyDashboard() {
   return (
     <>
       <PageMeta
