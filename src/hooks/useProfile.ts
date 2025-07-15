@@ -9,6 +9,7 @@ export type UserProfile = {
   email?: string;
   phone?: string;
   role?: string;
+  location?: string;
   createdAt?: { seconds: number; nanoseconds: number };
   [key: string]: any;
 };

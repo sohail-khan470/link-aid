@@ -1,3 +1,98 @@
+// import { useEffect, useState } from "react";
+// import Chart from "react-apexcharts";
+// import { ApexOptions } from "apexcharts";
+// import { collection, getDocs } from "firebase/firestore";
+// import { db } from "../../config/firebase";
+
+// export default function MonthlyTargetUserBreakdown() {
+//   const [series, setSeries] = useState<number[]>([]);
+//   const [labels, setLabels] = useState<string[]>([]);
+
+//   useEffect(() => {
+//     const fetchUserStats = async () => {
+//       const usersSnapshot = await getDocs(collection(db, "users"));
+//       const roleCounts: Record<string, number> = {
+//         civilian: 0,
+//         towing_company: 0,
+//         insurer: 0,
+//       };
+
+//       usersSnapshot.forEach((doc) => {
+//         const role = doc.data().role;
+//         if (role && roleCounts[role] !== undefined) {
+//           roleCounts[role]++;
+//         }
+//       });
+
+//       const total = Object.values(roleCounts).reduce((a, b) => a + b, 0);
+//       const percentages = Object.values(roleCounts).map((count) =>
+//         total ? parseFloat(((count / total) * 100).toFixed(2)) : 0
+//       );
+
+//       setLabels(["Civilian", "Towing Company", "Insurer"]);
+//       setSeries(percentages);
+//     };
+
+//     fetchUserStats();
+//   }, []);
+
+//   const options: ApexOptions = {
+//     chart: {
+//       type: "radialBar",
+//       height: 350,
+//       sparkline: {
+//         enabled: true,
+//       },
+//     },
+//     colors: ["#465FFF", "#465FFF88", "#465FFF44"], // same base color, different opacities
+//     labels: labels,
+//     plotOptions: {
+//       radialBar: {
+//         dataLabels: {
+//           total: {
+//             show: true,
+//             label: "Total Users",
+//             formatter: () => `${series.reduce((a, b) => a + b, 0).toFixed(0)}%`,
+//           },
+//         },
+//       },
+//     },
+//     stroke: {
+//       lineCap: "round",
+//     },
+//     legend: {
+//       show: true,
+//       position: "bottom",
+//       horizontalAlign: "center",
+//       fontSize: "14px",
+//       fontWeight: 500,
+//     },
+//   };
+
+//   return (
+//     <div className="rounded-2xl border border-gray-200 bg-gray-100 dark:border-gray-800 dark:bg-white/[0.03]">
+//       <div className="px-5 pt-5 bg-white shadow-default rounded-2xl pb-11 dark:bg-gray-900 sm:px-6 sm:pt-6">
+//         <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+//           User Roles Distribution
+//         </h3>
+//         <p className="mt-1 text-gray-500 text-theme-sm dark:text-gray-400">
+//           Breakdown of user types in the system
+//         </p>
+
+//         <div className="mt-6 flex justify-center">
+//           <Chart
+//             options={options}
+//             series={series}
+//             type="radialBar"
+//             height={350}
+//           />
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+
 import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 import { useState } from "react";

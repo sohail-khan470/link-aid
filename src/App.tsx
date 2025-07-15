@@ -23,6 +23,7 @@ import CompanyDashboard from "./pages/Dashboard/CompanyDashboard";
 import StaffMangement from "./pages/StaffManagement/StaffManagement";
 import TowingCompanyManagement from "./components/towing_company/TowingCompanyManagement";
 import InsuranceCompanyManagement from "./components/insurance_company/InsuranceCompanyManagement";
+import UserProfiles from "./pages/UserProfiles";
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true); // Wait for Firebase to initialize
@@ -75,7 +76,7 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<AppLayout />}>
               {/* Shared Profile Route - Accessible to all authenticated users */}
-              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/profile" element={<UserProfiles />} />
               <Route path="/home" element={<CompanyDashboard />} />
 
               <Route path="/staff" element={<StaffMangement />} />

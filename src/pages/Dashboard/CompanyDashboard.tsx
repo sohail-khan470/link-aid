@@ -7,6 +7,7 @@ import LoadingSpinner from "../../components/ui/LoadingSpinner";
 // Import components for each role's dashboard
 import TowingCompanyDashboard from "../../components/towing_company/TowingCompanyDashboard";
 import InsuranceCompanyDashboard from "../../components/insurance_company/InsuranceCompanyDashboard";
+import AdminDashboard from "../../components/dashboard/AdminDashboard";
 
 export default function CompanyDashboard() {
   const [role, setRole] = useState<string | null>(null);
@@ -47,7 +48,7 @@ export default function CompanyDashboard() {
 
   if (role === "towing_company") return <TowingCompanyDashboard />;
   if (role === "insurance_company") return <InsuranceCompanyDashboard />;
-  if (role === "super_admin") return <p>Super Admin Dashboard</p>;
+  if (role === "super_admin") return <AdminDashboard />;
 
   return <p>You are not authorized to access this page.</p>;
 }

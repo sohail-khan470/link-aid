@@ -1,50 +1,28 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { Link } from "react-router";
-import {
-  query,
-  where,
-  orderBy,
-  collection,
-  onSnapshot,
-} from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
-import { User } from "firebase/auth";
-import { auth, db } from "../../../firebase";
+import { useProfile } from "../../hooks/useProfile";
+
 export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifying, setNotifying] = useState(true);
-  const [notifications, setNotifications] = useState([]);
-  const [user, setUser] = useState<User | null>(null);
+  const { profile } = useProfile();
 
-  console.log(notifications);
+  function formatTimeDifference(lastLoginDate: Date): string {
+    const now = new Date();
+    const diff = now.getTime() - lastLoginDate.getTime();
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
-    });
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
 
-    return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (!user) return;
-
-    const q = query(
-      collection(db, "notifications"),
-      // where("userId", "==", user.uid),
-      orderBy("createdAt", "desc")
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const items = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setNotifications(items);
-      setNotifying(items.some((item) => !item.read));
-    });
-
-    return () => unsubscribe();
-  }, [user]);
+    if (days > 0) return `${days} day${days > 1 ? "s" : ""}`;
+    if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""}`;
+    if (minutes > 0) return `${minutes} minute${minutes > 1 ? "s" : ""}`;
+    return `${seconds} second${seconds !== 1 ? "s" : ""}`;
+  }
 
   function toggleDropdown() {
     setIsOpen(!isOpen);
@@ -117,41 +95,58 @@ export default function NotificationDropdown() {
         </div>
         <ul className="flex flex-col h-auto overflow-y-auto custom-scrollbar">
           {/* Example notification items */}
-          <li>
-            <DropdownItem
-              onItemClick={closeDropdown}
-              className="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5"
-            >
-              <span className="relative block w-full h-10 rounded-full z-1 max-w-10">
-                <img
-                  width={40}
-                  height={40}
-                  src="/images/user/user-02.jpg"
-                  alt="User"
-                  className="w-full overflow-hidden rounded-full"
-                />
-                <span className="absolute bottom-0 right-0 z-10 h-2.5 w-full max-w-2.5 rounded-full border-[1.5px] border-white bg-success-500 dark:border-gray-900"></span>
-              </span>
-
-              <span className="block">
-                <span className="mb-1.5 block  text-theme-sm text-gray-500 dark:text-gray-400 space-x-1">
-                  <span className="font-medium text-gray-800 dark:text-white/90">
-                    Terry Franci
-                  </span>
-                  <span> requests permission to change</span>
-                  <span className="font-medium text-gray-800 dark:text-white/90">
-                    Project - Nganter App
-                  </span>
+          {profile?.lastLogin ? (
+            <li>
+              <DropdownItem
+                onItemClick={closeDropdown}
+                className="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5"
+              >
+                <span className="relative block w-full h-10 rounded-full z-1 max-w-10">
+                  <img
+                    width={40}
+                    height={40}
+                    src="/images/user/user-02.jpg"
+                    alt="User"
+                    className="w-full overflow-hidden rounded-full"
+                  />
+                  <span className="absolute bottom-0 right-0 z-10 h-2.5 w-full max-w-2.5 rounded-full border-[1.5px] border-white bg-success-500 dark:border-gray-900"></span>
                 </span>
 
-                <span className="flex items-center gap-2 text-gray-500 text-theme-xs dark:text-gray-400">
-                  <span>Project</span>
-                  <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
-                  <span>5 min ago</span>
+                <span className="block">
+                  <span className="mb-1.5 block  text-theme-sm text-gray-500 dark:text-gray-400 space-x-1">
+                    <span className="font-medium text-gray-800 dark:text-white/90">
+                      {profile?.fullName || "User"}
+                    </span>
+                    <span> last login time </span>
+                    <span className="font-medium text-gray-800 dark:text-white/90">
+                      {new Date(profile?.lastLogin?.toDate()).toLocaleString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )}
+                    </span>
+                  </span>
+
+                  <span className="flex items-center gap-2 text-gray-500 text-theme-xs dark:text-gray-400">
+                    <span>Login</span>
+                    <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
+                    <span>
+                      {profile?.lastLogin
+                        ? `${formatTimeDifference(
+                            profile.lastLogin.toDate()
+                          )} ago`
+                        : "Never"}
+                    </span>
+                  </span>
                 </span>
-              </span>
-            </DropdownItem>
-          </li>
+              </DropdownItem>
+            </li>
+          ) : null}
 
           <li>
             <DropdownItem
