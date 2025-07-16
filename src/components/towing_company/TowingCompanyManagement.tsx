@@ -1,193 +1,286 @@
-import React, { useState } from "react";
-import { FiUser, FiPlus, FiEdit, FiTrash } from "react-icons/fi";
-import TowingCompanyModal from "./TowingCompanyModal";
+
+import { useState } from "react";
+import { FiPlus, FiEdit2, FiTrash2 } from "react-icons/fi";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
+import LoadingSpinner from "../ui/LoadingSpinner";
+import ComponentCard from "../common/ComponentCard";
 import useTowingCompanyManagement from "../../hooks/useTowingCompanyManagement";
 import { confirm } from "../../utils/confirm";
+import Label from "../form/Label";
+import Input from "../form/input/InputField";
 
-const TowingCompanyManagement: React.FC = () => {
+export default function TowingCompanyManagement() {
   const {
-    companies,
+    companies = [],
     loading,
-    error,
     createCompany,
     updateCompany,
     deleteCompany,
   } = useTowingCompanyManagement();
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
+
+  const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [createError, setCreateError] = useState<string | null>(null);
-  const [createSuccess, setCreateSuccess] = useState<string | null>(null);
-  const [editError, setEditError] = useState<string | null>(null);
-  const [editSuccess, setEditSuccess] = useState<string | null>(null);
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phoneNumber: "",
+    address: "",
+    region: "",
+    description: "",
+  });
 
-  console.log(companies[0], "CCCCCCCCCCCCCCC");
-
-  const handleCreateSubmit = async (formData: any) => {
-    setIsSubmitting(true);
-    setCreateError(null);
-    setCreateSuccess(null);
-    try {
-      await createCompany(formData);
-      setCreateSuccess("Company created successfully!");
-      setTimeout(() => {
-        setShowCreateModal(false);
-        setCreateSuccess(null);
-      }, 1500);
-    } catch (err) {
-      setCreateError("Failed to create company. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleEdit = (company: any) => {
+    setSelectedCompany(company);
+    setFormData({
+      name: company.name || "",
+      email: company.email || "",
+      phoneNumber: company.phoneNumber || "",
+      address: company.address || "",
+      region: company.region || "",
+      description: company.description || "",
+    });
+    setShowForm(true);
   };
 
-  const handleEditSubmit = async (formData: any) => {
+  const handleAddNew = () => {
+    setSelectedCompany(null);
+    setFormData({
+      name: "",
+      email: "",
+      phoneNumber: "",
+      address: "",
+      region: "",
+      description: "",
+    });
+    setShowForm(true);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsSubmitting(true);
-    setEditError(null);
-    setEditSuccess(null);
     try {
-      await updateCompany(formData.id, {
-        name: formData.name,
-        email: formData.email,
-        phoneNumber: formData.phoneNumber,
-        address: formData.address,
-        description: formData.description,
-      });
-      setEditSuccess("Company updated successfully!");
-      setTimeout(() => {
-        setShowEditModal(false);
-        setEditSuccess(null);
-      }, 1500);
-    } catch (err) {
-      setEditError("Failed to update company. Please try again.");
+      if (selectedCompany) {
+        await updateCompany(selectedCompany.id, formData);
+      } else {
+        await createCompany(formData);
+      }
+      setShowForm(false);
+    } catch (error) {
+      console.error("Error saving company:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    const isConfirmed = await confirm(
-      "Are you sure you want to delete this company?"
-    );
-    if (!isConfirmed) return;
-
+    const confirmed = await confirm("Are you sure you want to delete this company?");
+    if (!confirmed) return;
     try {
       await deleteCompany(id);
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      console.error("Delete failed", error);
     }
   };
 
-  const openEditModal = (company: any) => {
-    setSelectedCompany(company);
-    setShowEditModal(true);
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-4 bg-red-100 border-l-4 border-red-500 text-red-700">
-        <p>{error}</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">
-          Towing Company Management
-        </h1>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center"
-        >
-          <FiPlus className="mr-2" />
-          Create Company
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {companies.map((company) => (
-          <div
-            key={company.id}
-            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+    <>
+      <ComponentCard
+        title="Towing Companies"
+        button={
+          <button
+            onClick={handleAddNew}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <FiUser className="text-blue-600 text-xl" />
-                </div>
-                <div className="ml-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {company.name}
-                  </h3>
-                  <p className="text-sm text-gray-500">{company.email}</p>
-                </div>
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => openEditModal(company)}
-                  className="text-blue-600 hover:text-blue-800"
-                >
-                  <FiEdit />
-                </button>
-                <button
-                  onClick={() => handleDelete(company.id)}
-                  className="text-red-600 hover:text-red-800"
-                >
-                  <FiTrash />
-                </button>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm text-gray-600">
-                Phone: {company.phoneNumber}
-              </p>
-              <p className="text-sm text-gray-600">
-                Address: {company.address || "N/A"}
-              </p>
-              <p className="text-sm text-gray-600">Region: {company.region}</p>
-            </div>
+            <FiPlus /> Add
+          </button>
+        }
+      >
+        {loading ? (
+          <div className="p-4 flex justify-center">
+            <LoadingSpinner />
           </div>
-        ))}
-        {companies.length === 0 && (
-          <div className="text-center py-8">
-            <p className="text-gray-500">No companies found.</p>
+        ) : companies.length === 0 ? (
+          <div className="p-6 text-center text-gray-600 dark:text-gray-400">
+            No towing companies found.
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+            <div className="max-w-full overflow-x-auto">
+              <Table>
+                <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+                  <TableRow>
+                    {[
+                      "Name",
+                      "Email",
+                      "Phone",
+                      "Region",
+                      "Address",
+                      "Actions",
+                    ].map((heading) => (
+                      <TableCell
+                        key={heading}
+                        isHeader
+                        className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400 uppercase"
+                      >
+                        {heading}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+                  {companies.map((company) => (
+                    <TableRow
+                      key={company.id}
+                      className="hover:bg-blue-50 dark:hover:bg-white/5 transition"
+                    >
+                      <TableCell className="py-3 px-5 text-gray-800 dark:text-gray-400">
+                        {company.name}
+                      </TableCell>
+                      <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
+                        {company.email}
+                      </TableCell>
+                      <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
+                        {company.phoneNumber}
+                      </TableCell>
+                      <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
+                        {company.region}
+                      </TableCell>
+                      <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
+                        {company.address}
+                      </TableCell>
+                      <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEdit(company)}
+                            className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400"
+                          >
+                            <FiEdit2 size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(company.id)}
+                            className="text-red-500 hover:text-red-700 dark:text-red-400"
+                          >
+                            <FiTrash2 size={16} />
+                          </button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         )}
-      </div>
+      </ComponentCard>
 
-      <TowingCompanyModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onSubmit={handleCreateSubmit}
-        title="Create New Towing Company"
-        isSubmitting={isSubmitting}
-        error={createError}
-        success={createSuccess}
-      />
+      {/* Modal */}
+      {showForm && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4 bg-black/40 backdrop-blur-sm">
+          <div className="relative w-full max-w-md">
+            <div className="overflow-hidden rounded-2xl shadow-2xl bg-white dark:bg-gray-800 transition-all duration-300 scale-100">
+              <ComponentCard
+                title={
+                  selectedCompany ? "Edit Towing Company" : "Add Towing Company"
+                }
+                button={
+                  <button
+                    onClick={() => setShowForm(false)}
+                    className="text-sm text-blue-500 hover:underline"
+                  >
+                    Cancel
+                  </button>
+                }
+              >
+                <form onSubmit={handleFormSubmit} className="space-y-5">
+                  <div>
+                    <Label htmlFor="name">Company Name</Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      placeholder="e.g., Fast Tow Inc."
+                    />
+                  </div>
 
-      <TowingCompanyModal
-        isOpen={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        onSubmit={handleEditSubmit}
-        title="Edit Towing Company"
-        initialData={selectedCompany}
-        isSubmitting={isSubmitting}
-        error={editError}
-        success={editSuccess}
-      />
-    </div>
+                  <div>
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="example@fasttow.com"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="phoneNumber">Phone Number</Label>
+                    <Input
+                      id="phoneNumber"
+                      name="phoneNumber"
+                      value={formData.phoneNumber}
+                      onChange={handleInputChange}
+                      placeholder="+1 123 456 7890"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="address">Address</Label>
+                    <Input
+                      id="address"
+                      name="address"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                      placeholder="123 Main St, City"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="region">Region</Label>
+                    <Input
+                      id="region"
+                      name="region"
+                      value={formData.region}
+                      onChange={handleInputChange}
+                      placeholder="East Region"
+                    />
+                  </div>
+
+                  <div>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                    >
+                      {isSubmitting
+                        ? selectedCompany
+                          ? "Updating..."
+                          : "Creating..."
+                        : selectedCompany
+                        ? "Update Company"
+                        : "Create Company"}
+                    </button>
+                  </div>
+                </form>
+              </ComponentCard>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
-};
-
-export default TowingCompanyManagement;
+}

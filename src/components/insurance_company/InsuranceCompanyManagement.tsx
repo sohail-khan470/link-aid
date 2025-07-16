@@ -1,33 +1,32 @@
 import { useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
+import Badge from "../ui/badge/Badge";
 import LoadingSpinner from "../ui/LoadingSpinner";
+import ComponentCard from "../common/ComponentCard";
 import { FiPlus, FiEdit2, FiTrash2 } from "react-icons/fi";
-import PageMeta from "../common/PageMeta";
 import { useInsuranceCompany } from "../../hooks/useInsuranceCompany";
+import Label from "../form/Label";
+import Input from "../form/input/InputField";
+import { Timestamp } from "firebase/firestore";
 
-const COLORS = {
-  light: {
-    background: "bg-white",
-    card: "bg-white border-gray-100",
-    textPrimary: "text-gray-800",
-    textSecondary: "text-gray-500",
-    hover: "hover:bg-gray-50",
-    iconBg: "bg-blue-100",
-    iconColor: "text-blue-600",
-  },
-  dark: {
-    background: "dark:bg-gray-900",
-    card: "dark:bg-gray-800 dark:border-gray-700",
-    textPrimary: "dark:text-white",
-    textSecondary: "dark:text-gray-400",
-    hover: "dark:hover:bg-gray-700/50",
-    iconBg: "dark:bg-blue-900/30",
-    iconColor: "dark:text-blue-400",
-  },
-};
+interface Company {
+  id: string;
+  companyName: string;
+  contactEmail: string;
+  region: string;
+  createdAt?: Timestamp;
+  activeClaims?: any[];
+}
 
-const InsuranceCompanyManagement = () => {
+export default function InsuranceCompanyManagement() {
   const {
-    insuranceCompanies,
+    insuranceCompanies = [],
     loading,
     formLoading,
     handleDelete,
@@ -35,19 +34,36 @@ const InsuranceCompanyManagement = () => {
   } = useInsuranceCompany();
 
   const [showForm, setShowForm] = useState(false);
-  const [currentCompany, setCurrentCompany] = useState<any | null>(null);
-  const [formData, setFormData] = useState({
+  const [currentCompany, setCurrentCompany] = useState<Company | null>(null);
+  const [formData, setFormData] = useState<{
+    companyName: string;
+    contactEmail: string;
+    region: string;
+    createdAt?: Timestamp;
+  }>({
     companyName: "",
     contactEmail: "",
     region: "",
+    createdAt: undefined,
   });
 
-  const handleEdit = (company: any) => {
+  const handleEdit = (company: Company) => {
     setCurrentCompany(company);
     setFormData({
-      companyName: company.companyName,
-      contactEmail: company.contactEmail,
-      region: company.region,
+      companyName: company.companyName || "",
+      contactEmail: company.contactEmail || "",
+      region: company.region || "",
+    });
+    setShowForm(true);
+  };
+
+  const handleAddNew = () => {
+    setCurrentCompany(null);
+    setFormData({
+      companyName: "",
+      contactEmail: "",
+      region: "",
+      createdAt: Timestamp.now(),
     });
     setShowForm(true);
   };
@@ -59,240 +75,194 @@ const InsuranceCompanyManagement = () => {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await handleSubmit(formData, currentCompany);
-    if (success) {
-      setShowForm(false);
-    }
+    const ok = await handleSubmit(formData, currentCompany);
+    if (ok) setShowForm(false);
   };
-
-  const handleAddNew = () => {
-    setCurrentCompany(null);
-    setFormData({ companyName: "", contactEmail: "", region: "" });
-    setShowForm(true);
-  };
-
-  if (loading && !insuranceCompanies.length) {
-    return (
-      <div
-        className={`min-h-screen flex items-center justify-center ${COLORS.light.background} ${COLORS.dark.background}`}
-      >
-        <LoadingSpinner />
-      </div>
-    );
-  }
+  
 
   return (
-    <div
-      className={`min-h-screen transition-colors duration-200 ${COLORS.light.background} ${COLORS.dark.background}`}
-    >
-      <PageMeta
-        title="Insurance Companies"
-        description="Manage insurance companies in the system"
-      />
-
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1
-              className={`text-3xl font-light mb-2 ${COLORS.light.textPrimary} ${COLORS.dark.textPrimary}`}
-            >
-              Insurance Companies
-            </h1>
-            <p
-              className={
-                COLORS.light.textSecondary + " " + COLORS.dark.textSecondary
-              }
-            >
-              {insuranceCompanies.length} companies registered
-            </p>
-          </div>
+    <>
+      <ComponentCard
+        title={"Insurance Companies"}
+        button={
           <button
             onClick={handleAddNew}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg ${COLORS.light.iconBg} ${COLORS.dark.iconBg} ${COLORS.light.iconColor} ${COLORS.dark.iconColor}`}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
           >
-            <FiPlus className="w-5 h-5" />
-            Add New Company
+            <FiPlus /> Add
           </button>
-        </div>
-
-        {/* Company List */}
-        <div
-          className={`rounded-xl shadow-sm border ${COLORS.light.card} ${COLORS.dark.card}`}
-        >
-          {loading && insuranceCompanies.length > 0 && (
-            <div className="p-4 flex justify-center">
-              <LoadingSpinner />
-            </div>
-          )}
-
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className={COLORS.light.card}>
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                    Company
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                    Contact
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                    Region
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                    Active Claims
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {insuranceCompanies.map((company) => (
-                  <tr
-                    key={company.id}
-                    className={`${COLORS.light.hover} ${COLORS.dark.hover}`}
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div
-                        className={`font-medium ${COLORS.light.textPrimary} ${COLORS.dark.textPrimary}`}
-                      >
-                        {company.companyName}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div
-                        className={`${COLORS.light.textSecondary} ${COLORS.dark.textSecondary}`}
-                      >
-                        {company.contactEmail}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div
-                        className={`${COLORS.light.textSecondary} ${COLORS.dark.textSecondary}`}
-                      >
-                        {company.region}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          company.activeClaims?.length > 0
-                            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                            : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
-                        }`}
-                      >
-                        {company.activeClaims?.length || 0} active
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button
-                        onClick={() => handleEdit(company)}
-                        className={`mr-3 ${COLORS.light.iconColor} ${COLORS.dark.iconColor} hover:opacity-80`}
-                        disabled={loading}
-                      >
-                        <FiEdit2 className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(company.id)}
-                        className="text-red-500 dark:text-red-400 hover:opacity-80"
-                        disabled={loading}
-                      >
-                        <FiTrash2 className="w-5 h-5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        }
+      >
+        {loading && insuranceCompanies.length > 0 ? (
+          <div className="p-4 flex justify-center">
+            <LoadingSpinner />
           </div>
-        </div>
-
-        {/* Add/Edit Form Modal */}
-        {showForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div
-              className={`w-full max-w-md p-6 rounded-xl shadow-lg ${COLORS.light.card} ${COLORS.dark.card}`}
-            >
-              <h2
-                className={`text-xl font-light mb-6 ${COLORS.light.textPrimary} ${COLORS.dark.textPrimary}`}
-              >
-                {currentCompany ? "Edit Company" : "Add New Company"}
-              </h2>
-
-              <form onSubmit={handleFormSubmit}>
-                <div className="mb-4">
-                  <label
-                    className={`block text-sm font-medium mb-1 ${COLORS.light.textSecondary} ${COLORS.dark.textSecondary}`}
-                  >
-                    Company Name
-                  </label>
-                  <input
-                    type="text"
-                    name="companyName"
-                    value={formData.companyName}
-                    onChange={handleInputChange}
-                    required
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${COLORS.light.card} ${COLORS.dark.card} ${COLORS.light.textPrimary} ${COLORS.dark.textPrimary}`}
-                  />
-                </div>
-
-                <div className="mb-4">
-                  <label
-                    className={`block text-sm font-medium mb-1 ${COLORS.light.textSecondary} ${COLORS.dark.textSecondary}`}
-                  >
-                    Contact Email
-                  </label>
-                  <input
-                    type="email"
-                    name="contactEmail"
-                    value={formData.contactEmail}
-                    onChange={handleInputChange}
-                    required
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${COLORS.light.card} ${COLORS.dark.card} ${COLORS.light.textPrimary} ${COLORS.dark.textPrimary}`}
-                  />
-                </div>
-
-                <div className="mb-4">
-                  <label
-                    className={`block text-sm font-medium mb-1 ${COLORS.light.textSecondary} ${COLORS.dark.textSecondary}`}
-                  >
-                    Region
-                  </label>
-                  <input
-                    type="text"
-                    name="region"
-                    value={formData.region}
-                    onChange={handleInputChange}
-                    required
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${COLORS.light.card} ${COLORS.dark.card} ${COLORS.light.textPrimary} ${COLORS.dark.textPrimary}`}
-                  />
-                </div>
-
-                <div className="flex justify-end gap-3 mt-6">
-                  <button
-                    type="button"
-                    onClick={() => setShowForm(false)}
-                    disabled={formLoading}
-                    className={`px-4 py-2 rounded-lg ${COLORS.light.textSecondary} ${COLORS.dark.textSecondary} hover:opacity-80`}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={formLoading}
-                    className={`px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-2`}
-                  >
-                    {formLoading && <LoadingSpinner />}
-                    {currentCompany ? "Update" : "Create"}
-                  </button>
-                </div>
-              </form>
+        ) : insuranceCompanies.length === 0 ? (
+          <div className="p-6 text-center text-gray-600 dark:text-gray-400">
+            <LoadingSpinner/>
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+            <div className="max-w-full overflow-x-auto">
+              <Table>
+                <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+                  <TableRow>
+                    {[
+                      "Company",
+                      "Contact",
+                      "CreatedAt",
+                      "Region",
+                      "Active Claims",
+                      "Actions",
+                    ].map((heading) => (
+                      <TableCell
+                        key={heading}
+                        isHeader
+                        className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400 uppercase"
+                      >
+                        {heading}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+                  {insuranceCompanies.map((c: Company) => (
+                    <TableRow
+                      key={c.id}
+                      className="hover:bg-blue-50 dark:hover:bg-white/5 transition"
+                    >
+                      <TableCell className="py-3 px-5 text-gray-800 dark:text-gray-400">
+                        {c.companyName}
+                      </TableCell>
+                      <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
+                        {c.contactEmail}
+                      </TableCell>
+                      <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
+                        {c?.createdAt?.toDate
+                          ? c.createdAt.toDate().toLocaleDateString()
+                          : "N/A"}
+                      </TableCell>
+                      <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
+                        {c.region}
+                      </TableCell>
+                      <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
+                        <Badge
+                          size="sm"
+                          color={
+                            Array.isArray(c.activeClaims) &&
+                            c.activeClaims.length > 0
+                              ? "success"
+                              : "warning"
+                          }
+                        >
+                          {c.activeClaims?.length || 0} Active
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEdit(c)}
+                            className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400"
+                            title="Edit"
+                          >
+                            <FiEdit2 size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(c.id)}
+                            className="text-red-500 hover:text-red-700 dark:text-red-400"
+                            title="Delete"
+                          >
+                            <FiTrash2 size={16} />
+                          </button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           </div>
         )}
-      </div>
-    </div>
-  );
-};
+      </ComponentCard>
 
-export default InsuranceCompanyManagement;
+      {showForm && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4 bg-black/40 backdrop-blur-sm">
+          <div className="relative w-full max-w-md">
+            {/* Modal content card */}
+            <div className="overflow-hidden rounded-2xl shadow-2xl bg-white dark:bg-gray-800 transition-all duration-300 scale-100">
+              <ComponentCard
+                title={
+                  currentCompany
+                    ? "Edit Insurance Company"
+                    : "Add Insurance Company"
+                }
+                button={
+                  <button
+                    onClick={() => setShowForm(false)}
+                    className="text-sm text-blue-500 hover:underline"
+                  >
+                    Cancel
+                  </button>
+                }
+              >
+                <form onSubmit={handleFormSubmit} className="space-y-6">
+                  <div>
+                    <Label htmlFor="companyName">Company Name</Label>
+                    <Input
+                      type="text"
+                      id="companyName"
+                      name="companyName"
+                      placeholder="ABC Insurance Ltd."
+                      value={formData.companyName}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="contactEmail">Contact Email</Label>
+                    <Input
+                      type="email"
+                      id="contactEmail"
+                      name="contactEmail"
+                      placeholder="contact@abcinsurance.com"
+                      value={formData.contactEmail}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="region">Region</Label>
+                    <Input
+                      type="text"
+                      id="region"
+                      name="region"
+                      placeholder="North Region"
+                      value={formData.region}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+
+                  <div>
+                    <button
+                      type="submit"
+                      disabled={formLoading}
+                      className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                    >
+                      {formLoading
+                        ? currentCompany
+                          ? "Updating..."
+                          : "Creating..."
+                        : currentCompany
+                        ? "Update Company"
+                        : "Create Company"}
+                    </button>
+                  </div>
+                </form>
+              </ComponentCard>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
