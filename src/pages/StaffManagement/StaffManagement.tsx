@@ -45,7 +45,6 @@ export default function StaffMangement() {
 
   if (role === "towing_company") return <TowingStaffPage />;
   if (role === "insurance_company") return <InsuranceStaffPage />;
-  if (role === "super_admin") return <p>Super Admin Dashboard</p>;
 
   return <p>You are not authorized to access this page.</p>;
 }

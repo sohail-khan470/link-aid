@@ -23,6 +23,7 @@ import StaffMangement from "./pages/StaffManagement/StaffManagement";
 import TowingCompanyManagement from "./components/towing_company/TowingCompanyManagement";
 import InsuranceCompanyManagement from "./components/insurance_company/InsuranceCompanyManagement";
 import UserProfiles from "./pages/UserProfiles";
+import TowingRequestPage from "./pages/TowingCompany/TowingRequestsPage";
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true); // Wait for Firebase to initialize
@@ -77,7 +78,6 @@ export default function App() {
               {/* Shared Profile Route - Accessible to all authenticated users */}
               <Route path="/profile" element={<UserProfiles />} />
               <Route path="/home" element={<CompanyDashboard />} />
-
               <Route path="/staff" element={<StaffMangement />} />
 
               {/* Super Admin Dashboard */}
@@ -93,35 +93,13 @@ export default function App() {
                 />
               </Route>
 
-              {/* Towing Company Dashboard 
               <Route element={<RoleRoute allowedRoles={["towing_company"]} />}>
-                <Route element={<AppLayout />}>
-                  <Route
-                    path="/towing/staff-management"
-                    element={<UserManagement />}
-                  />
-                  <Route
-                    path="/towing/incidents-analytics"
-                    element={<IncidentsAnalytics />}
-                  />
-                </Route>
-              </Route>*/}
-
-              {/* Insurance company Dashboard 
-              <Route
-                element={<RoleRoute allowedRoles={["insurance_company"]} />}
-              >
-                <Route element={<AppLayout />}>
-                  <Route
-                    path="/insurance/staff-management"
-                    element={<UserManagement />}
-                  />
-                  <Route
-                    path="/insurance/incidents-analytics"
-                    element={<IncidentsAnalytics />}
-                  />
-                </Route>
-              </Route>*/}
+                <Route path="/towing/staff" element={<StaffMangement />} />
+                <Route
+                  path="/towing/requests"
+                  element={<TowingRequestPage />}
+                />
+              </Route>
 
               {/* Unauthorized */}
               <Route path="/unauthorized" element={<Unauthorized />} />
