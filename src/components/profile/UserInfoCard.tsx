@@ -4,12 +4,13 @@ import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import { useProfile } from "../../hooks/useProfile";
+import LoadingSpinner from "../ui/LoadingSpinner";
 
 
 export default function UserInfoCard() {
   const { isOpen, openModal, closeModal } = useModal();
   const { profile, loading } = useProfile();
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <LoadingSpinner />;
   const handleSave = () => {
     // Handle save logic here
     console.log("Saving changes...");
