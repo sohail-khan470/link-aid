@@ -17,7 +17,7 @@ export default function SignUpForm() {
     phone: "",
     language: "en",
     theme: "light",
-    role: "Admin",
+    role: "civilian", // default role
   });
   const [errors, setErrors] = useState({
     email: "",

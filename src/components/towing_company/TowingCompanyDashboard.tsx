@@ -1,4 +1,3 @@
-import StatisticsChart from "../ecommerce/StatisticsChart";
 import MonthlyTarget from "../ecommerce/MonthlyTarget";
 import RecentOrders from "../ecommerce/RecentOrders";
 import PageMeta from "../common/PageMeta";
@@ -14,11 +13,6 @@ export default function TowingCompanyDashboard() {
         <div className="col-span-12 xl:col-span-5">
           <MonthlyTarget />
         </div>
-
-        <div className="col-span-12">
-          <StatisticsChart />
-        </div>
-
         <div className="col-span-12 xl:col-span-7">
           <RecentOrders />
         </div>
