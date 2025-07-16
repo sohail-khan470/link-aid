@@ -1,5 +1,5 @@
 import EcommerceMetrics from "../ecommerce/EcommerceMetrics";
-import MonthlySalesChart from "../ecommerce/MonthlySalesChart";
+import MonthlySalesChart from "../ecommerce/MonthlyRegistrationsChart";
 import StatisticsChart from "../ecommerce/StatisticsChart";
 import MonthlyTarget from "../ecommerce/MonthlyTarget";
 import RecentOrders from "../ecommerce/RecentOrders";
