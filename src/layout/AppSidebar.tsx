@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   ChevronDownIcon,
-  GridIcon,
   HorizontaLDots,
   ListIcon,
   PlugInIcon,
@@ -15,6 +14,12 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
 import { auth, db } from "../../firebase";
+import {
+  BuildingIcon,
+  LayoutDashboard,
+  ShieldIcon,
+  UserIcon,
+} from "lucide-react";
 
 type NavItem = {
   name: string;
@@ -26,22 +31,22 @@ type NavItem = {
 // Role-specific menu items
 const superAdminNavItems: NavItem[] = [
   {
-    icon: <GridIcon />,
+    icon: <LayoutDashboard />,
     name: "Dashboard",
     path: "/admin/home",
   },
   {
-    icon: <FiHome />,
+    icon: <ShieldIcon />,
     name: "Insurance Companies",
     path: "/admin/insurance-management",
   },
   {
-    icon: <UserCircleIcon />,
+    icon: <UserIcon />,
     name: "Profile",
     path: "/profile",
   },
   {
-    icon: <FiHome />,
+    icon: <BuildingIcon />,
     name: "Towing Companies",
     path: "/admin/towing-management",
   },
