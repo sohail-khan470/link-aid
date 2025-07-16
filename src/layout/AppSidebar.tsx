@@ -60,21 +60,18 @@ const towingCompanyNavItems: NavItem[] = [
   },
   {
     icon: <UserCircleIcon />,
-    name: "Staff Management",
+    name: "Tow Operators",
     path: "/staff",
   },
   {
     icon: <PieChartIcon />,
     name: "Incidents Analytics",
-    path: "/towing/incidents-analytics",
+    path: "/towing/incidents",
   },
   {
-    name: "Tow Management",
+    name: "Towing Requests",
     icon: <ListIcon />,
-    subItems: [
-      { name: "Tow Operators", path: "/towing/tow-operators" },
-      { name: "Tow Requests", path: "/towing/tow-requests" },
-    ],
+    path: "/towing/requests",
   },
 ];
 
