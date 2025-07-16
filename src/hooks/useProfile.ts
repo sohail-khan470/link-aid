@@ -1,7 +1,7 @@
 // hooks/useProfile.ts
 import { useEffect, useState } from "react";
 import { User, onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, Timestamp } from "firebase/firestore";
 import { auth, db } from "../../firebase";
 
 export type UserProfile = {
@@ -10,7 +10,8 @@ export type UserProfile = {
   phone?: string;
   role?: string;
   location?: string;
-  createdAt?: { seconds: number; nanoseconds: number };
+  lastLogin?: Timestamp;
+  // createdAt?: { seconds: number; nanoseconds: number };
   [key: string]: any;
 };
 
