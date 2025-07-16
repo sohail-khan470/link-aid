@@ -20,9 +20,9 @@ import { RoleRoute } from "./components/auth/RoleRoute";
 import HomeRedirect from "./pages/Shared/HomeRedirect";
 import CompanyDashboard from "./pages/Dashboard/CompanyDashboard";
 import StaffMangement from "./pages/StaffManagement/StaffManagement";
-import TowingCompanyManagement from "./components/towing_company/TowingCompanyManagement";
-import InsuranceCompanyManagement from "./components/insurance_company/InsuranceCompanyManagement";
 import UserProfiles from "./pages/UserProfiles";
+import InsuranceCompanyPage from "./pages/InsuranceCompany/InsuranceCompanyPage";
+import TowingCompanyPage from "./pages/TowingCompany/TowingCompanyPage";
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true); // Wait for Firebase to initialize
@@ -84,12 +84,12 @@ export default function App() {
               <Route element={<RoleRoute allowedRoles={["super_admin"]} />}>
                 <Route
                   path="/admin/towing-management"
-                  element={<TowingCompanyManagement />}
+                  element={<TowingCompanyPage />}
                 />
                 <Route path="/admin/home" element={<CompanyDashboard />} />
                 <Route
                   path="/admin/insurance-management"
-                  element={<InsuranceCompanyManagement />}
+                  element={<InsuranceCompanyPage />}
                 />
               </Route>
 
