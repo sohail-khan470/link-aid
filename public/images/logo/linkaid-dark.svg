@@ -1,0 +1,29 @@
+<svg width="160" height="120" viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <!-- Emergency Icon: Red Box with White Cross -->
+  <rect x="50" y="20" width="60" height="60" rx="12" fill="#EB2C2C" />
+  <!-- <path d="M97  35h6v10h10v6h-10v10h-6V51H87v-6h10V35z" fill="#ffffff"/> -->
+    <text x="62" y="69" rx="12" font-size="62" font-family="Segoe UI, sans-serif" fill="#ffffff" font-weight="600">
+    +
+  </text>
+
+  <!-- Top Left Signal Waves -->
+  <path d="M30 50c0-12 6-23 15-30" stroke="#EB2C2C" stroke-width="4" fill="none"/>
+  <path d="M38 50c0-8 4-15 10-20" stroke="#EB2C2C" stroke-width="4" fill="none"/>
+
+  <!-- Top Right Signal Waves -->
+  <path d="M130 50c0-12-6-23-15-30" stroke="#EB2C2C" stroke-width="4" fill="none"/>
+  <path d="M122 50c0-8-4-15-10-20" stroke="#EB2C2C" stroke-width="4" fill="none"/>
+
+  <!-- Bottom Left Signal Waves (near icon, upward curve) -->
+  <path d="M30 60c0 12 6 23 15 30" stroke="#EB2C2C" stroke-width="4" fill="none"/>
+  <path d="M38 60c0 8 4 15 10 20" stroke="#EB2C2C" stroke-width="4" fill="none"/>
+
+  <!-- Bottom Right Signal Waves (near icon, upward curve) -->
+  <path d="M130 60c0 12 -6 23 -15 30" stroke="#EB2C2C" stroke-width="4" fill="none"/>
+  <path d="M122 60c0 8 -4 15 -10 20" stroke="#EB2C2C" stroke-width="4" fill="none"/>
+
+  <!-- Text: LinkAid -->
+  <text x="20" y="120" font-size="32" font-family="Segoe UI, sans-serif" fill="#000000" font-weight="800">
+    LinkAid
+  </text>
+</svg>

@@ -21,12 +21,12 @@ export default function AuthLayout({
                 <img
                   width={231}
                   height={48}
-                  src="/images/logo/auth-logo.svg"
+                  src="/images/logo/linkaid.svg"
                   alt="Logo"
                 />
               </Link>
               <p className="text-center text-gray-400 dark:text-white/60">
-                LinkAid – Bridging Emergencies, Insurance, and Help in Real
+                LinkAid Bridging Emergencies, Insurance, and Help in Real
                 Time.
               </p>
             </div>
