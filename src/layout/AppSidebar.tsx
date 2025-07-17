@@ -20,12 +20,13 @@ import {
   ShieldIcon,
   UserIcon,
 } from "lucide-react";
+import { FaFileMedical, FaUserShield } from "react-icons/fa";
 
 type NavItem = {
   name: string;
   icon: React.ReactNode;
   path?: string;
-  subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
+  subItems?: { name: string; path: string; new?: boolean }[];
 };
 
 // Role-specific menu items
@@ -49,6 +50,26 @@ const superAdminNavItems: NavItem[] = [
     icon: <BuildingIcon />,
     name: "Towing Companies",
     path: "/admin/towing-management",
+  },
+  {
+    icon: <FaUserShield />,
+    name: "Responders",
+    path: "/responders",
+  },
+  {
+    icon: <FaFileMedical />,
+    name: "Emergency-Reports",
+    path: "/responders/emergency-reports",
+  },
+  {
+    icon: <PlugInIcon />,
+    name: "Action-Logs",
+    subItems: [
+      { name: "ResponderLogs", path: "/action-logs/responders" },
+      { name: "CivillianLogs", path: "/action-logs/civillian " },
+      { name: "InsuranceLogs", path: "/action-logs/insurance" },
+      { name: "TowOperatorLogs", path: "/action-logs/towing" },
+    ],
   },
 ];
 
@@ -85,8 +106,8 @@ const othersItems: NavItem[] = [
     icon: <PlugInIcon />,
     name: "Authentication",
     subItems: [
-      { name: "Sign In", path: "/signin", pro: false },
-      { name: "Sign Up", path: "/signup", pro: false },
+      { name: "Sign In", path: "/signin" },
+      { name: "Sign Up", path: "/signup" },
     ],
   },
 ];
@@ -291,17 +312,6 @@ const AppSidebar: React.FC = () => {
                             } menu-dropdown-badge`}
                           >
                             new
-                          </span>
-                        )}
-                        {subItem.pro && (
-                          <span
-                            className={`ml-auto ${
-                              isActive(subItem.path)
-                                ? "menu-dropdown-badge-active"
-                                : "menu-dropdown-badge-inactive"
-                            } menu-dropdown-badge`}
-                          >
-                            pro
                           </span>
                         )}
                       </span>

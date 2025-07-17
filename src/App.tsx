@@ -26,6 +26,7 @@ import TowingRequestPage from "./pages/TowingCompany/TowingRequestsPage";
 
 import InsuranceCompanyPage from "./pages/InsuranceCompany/InsuranceCompanyPage";
 import TowingCompanyPage from "./pages/TowingCompany/TowingCompanyPage";
+import RespondersPage from "./pages/Shared/Responders/Responders";
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -94,6 +95,7 @@ export default function App() {
                   path="/admin/insurance-management"
                   element={<InsuranceCompanyPage />}
                 />
+                <Route path="/responders" element={<RespondersPage />} />
               </Route>
 
               <Route element={<RoleRoute allowedRoles={["towing_company"]} />}>
