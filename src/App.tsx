@@ -58,8 +58,6 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  console.log(firebaseUser);
-
   if (loading) {
     return <LoadingSpinner />;
   }

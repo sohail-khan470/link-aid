@@ -16,11 +16,13 @@ import LoadingSpinner from "../components/ui/LoadingSpinner";
 import { auth, db } from "../../firebase";
 import {
   BuildingIcon,
+  FileHeart,
   LayoutDashboard,
+  ListTodo,
   ShieldIcon,
+  ShieldUser,
   UserIcon,
 } from "lucide-react";
-import { FaFileMedical, FaUserShield } from "react-icons/fa";
 
 type NavItem = {
   name: string;
@@ -52,17 +54,17 @@ const superAdminNavItems: NavItem[] = [
     path: "/admin/towing-management",
   },
   {
-    icon: <FaUserShield />,
+    icon: <ShieldUser />,
     name: "Responders",
     path: "/responders",
   },
   {
-    icon: <FaFileMedical />,
+    icon: <FileHeart />,
     name: "Emergency-Reports",
     path: "/responders/emergency-reports",
   },
   {
-    icon: <PlugInIcon />,
+    icon: <ListTodo />,
     name: "Action-Logs",
     subItems: [
       { name: "ResponderLogs", path: "/action-logs/responders" },

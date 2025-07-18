@@ -8,7 +8,7 @@ type RoleCounts = {
   totalInsurer: number | null;
   civilian: number | null;
   insurer: number | null;
-  towing_company: number | null;
+  towCompany: number | null;
 };
 
 export default function EcommerceMetrics() {
@@ -17,12 +17,12 @@ export default function EcommerceMetrics() {
     totalInsurer: null,
     civilian: null,
     insurer: null,
-    towing_company: null,
+    towCompany: null,
   });
 
   useEffect(() => {
     const fetchCounts = async () => {
-      const roles = ["civilian", "towing_company"];
+      const roles = ["civilian", "towing_companies"];
       const results: Partial<RoleCounts> = {};
 
       // Total users
@@ -32,6 +32,10 @@ export default function EcommerceMetrics() {
       // Total Insurers
       const insurerCounts = await getDocs(collection(db, "insurance_company"));
       results.totalInsurer = insurerCounts.size;
+
+      // Total Towing companies
+      const towingCounts = await getDocs(collection(db, "towing_companies"));
+      results.towCompany = towingCounts.size;
 
       // Role-specific counts
       for (const role of roles) {
@@ -77,7 +81,7 @@ export default function EcommerceMetrics() {
       <MetricCard
         icon={<FaTruck className="text-gray-800 size-6 dark:text-white/90" />}
         label="Towing Companies"
-        value={counts.towing_company}
+        value={counts.towCompany}
       />
     </div>
   );

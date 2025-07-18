@@ -5,8 +5,8 @@ import { doc, getDoc } from "firebase/firestore";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
 
 // Import components for each role's dashboard
-import TowingCompanyDashboard from "../../components/towing_company/TowingCompanyDashboard";
-import InsuranceCompanyDashboard from "../../components/insurance_company/InsuranceCompanyDashboard";
+import TowingCompanyDashboard from "../../components/dashboard/TowingCompanyDashboard";
+import InsuranceCompanyDashboard from "../../components/dashboard/InsuranceCompanyDashboard";
 import AdminDashboard from "../../components/dashboard/AdminDashboard";
 
 export default function CompanyDashboard() {
