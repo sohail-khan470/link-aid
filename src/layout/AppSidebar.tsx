@@ -16,6 +16,7 @@ import LoadingSpinner from "../components/ui/LoadingSpinner";
 import { auth, db } from "../../firebase";
 import {
   BuildingIcon,
+  CarFrontIcon,
   FileHeart,
   LayoutDashboard,
   ListTodo,
@@ -92,14 +93,14 @@ const towingCompanyNavItems: NavItem[] = [
     path: "/staff",
   },
   {
-    icon: <PieChartIcon />,
-    name: "Incidents Analytics",
-    path: "/towing/incidents",
-  },
-  {
     name: "Towing Requests",
     icon: <ListIcon />,
     path: "/towing/requests",
+  },
+  {
+    name: "Vehicles",
+    icon: <CarFrontIcon />,
+    path: "/towing/vehicles",
   },
 ];
 
