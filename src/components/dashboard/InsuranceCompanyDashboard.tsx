@@ -1,6 +1,6 @@
-import PageMeta from "../../components/common/PageMeta";
-import RecentOrders from "../../components/ecommerce/RecentOrders";
-import StatisticsChart from "../../components/ecommerce/StatisticsChart";
+import PageMeta from "../common/PageMeta";
+import RecentOrders from "../ecommerce/RecentOrders";
+import StatisticsChart from "../ecommerce/StatisticsChart";
 
 export default function InsuranceCompanyDashboard() {
   return (

@@ -222,54 +222,82 @@
 // }
 
 
-// 
-
-
 import { useEffect, useState } from "react";
 import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 import { collection, getDocs, Timestamp } from "firebase/firestore";
 import ChartTab from "../common/ChartTab";
+import LoadingSpinner from "../ui/LoadingSpinner";
 import { db } from "../../../firebase";
 
 type Mode = "hourly" | "weekly" | "monthly";
 
 export default function MonthlyRegistrationsChart() {
+  const currentYear = new Date().getFullYear();
   const [mode, setMode] = useState<Mode>("monthly");
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [dataCounts, setDataCounts] = useState<number[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       const snapshot = await getDocs(collection(db, "users"));
       const now = new Date();
+      const today = new Date(now);
+      today.setHours(0, 0, 0, 0);
 
       let counts: number[] = [];
       const yearsSet = new Set<number>();
 
       if (mode === "monthly") counts = Array(12).fill(0);
       else if (mode === "weekly") counts = Array(7).fill(0);
-      else counts = Array(24).fill(0);
+      else counts = Array(12).fill(0); // 12 slots for 2-hour intervals
 
       snapshot.forEach((doc) => {
         const data = doc.data();
         const createdAt: Timestamp = data.createdAt;
-        if (createdAt?.toDate) {
-          const date = createdAt.toDate();
-          const year = date.getFullYear();
-          yearsSet.add(year);
 
-          if (year === selectedYear) {
-            if (mode === "monthly") counts[date.getMonth()]++;
-            else if (mode === "weekly") counts[date.getDay()]++;
-            else if (mode === "hourly") counts[date.getHours()]++;
+        if (!createdAt?.toDate) return;
+        const date = createdAt.toDate();
+        const year = date.getFullYear();
+        yearsSet.add(year);
+
+        if (mode === "monthly" && year === selectedYear) {
+          const month = date.getMonth();
+          counts[month]++;
+        } else if (mode === "weekly") {
+          const startOfWeek = new Date(now);
+          startOfWeek.setDate(now.getDate() - now.getDay());
+          startOfWeek.setHours(0, 0, 0, 0);
+
+          const endOfWeek = new Date(startOfWeek);
+          endOfWeek.setDate(startOfWeek.getDate() + 6);
+          endOfWeek.setHours(23, 59, 59, 999);
+
+          if (date >= startOfWeek && date <= endOfWeek && year === selectedYear) {
+            const day = date.getDay();
+            counts[day]++;
+          }
+        } else if (mode === "hourly") {
+          if (date.toDateString() === now.toDateString() && year === selectedYear) {
+            const hour = date.getHours();
+            const index = Math.floor(hour / 2);
+            if (index < 12) counts[index]++;
           }
         }
       });
 
-      setAvailableYears(Array.from(yearsSet).sort((a, b) => b - a));
+      const years = Array.from(yearsSet).sort((a, b) => b - a);
+      setAvailableYears(years);
+
+      if (!years.includes(selectedYear)) {
+        setSelectedYear(years[0] || currentYear);
+      }
+
       setDataCounts(counts);
+      setLoading(false);
     };
 
     fetchData();
@@ -281,7 +309,9 @@ export default function MonthlyRegistrationsChart() {
     } else if (mode === "weekly") {
       return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     } else {
-      return Array.from({ length: 24 }, (_, i) => `${i}:00`);
+      return [
+        "12AM", "2AM", "4AM", "6AM", "8AM", "10AM", "12PM", "2PM", "4PM", "6PM", "8PM", "10PM"
+      ];
     }
   };
 
@@ -296,7 +326,7 @@ export default function MonthlyRegistrationsChart() {
     plotOptions: {
       bar: {
         horizontal: false,
-        columnWidth: "40%",
+        columnWidth: "39%",
         borderRadius: 5,
         borderRadiusApplication: "end",
       },
@@ -304,7 +334,7 @@ export default function MonthlyRegistrationsChart() {
     dataLabels: { enabled: false },
     stroke: {
       show: true,
-      width: 3,
+      width: 4,
       colors: ["transparent"],
     },
     xaxis: {
@@ -316,7 +346,7 @@ export default function MonthlyRegistrationsChart() {
       show: false,
     },
     yaxis: {
-      title: { text: undefined },
+      labels: { formatter: (val) => Math.floor(val).toString() },
     },
     grid: {
       yaxis: { lines: { show: true } },
@@ -332,22 +362,39 @@ export default function MonthlyRegistrationsChart() {
 
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-          User Registrations
-        </h3>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+            User Registrations
+          </h3>
+          <p className="text-sm text-gray-500 mt-1">
+            {mode === "hourly"
+              ? `Today’s stats in ${selectedYear}`
+              : mode === "weekly"
+              ? `This week's stats in ${selectedYear}`
+              : `Monthly stats for ${selectedYear}`}
+          </p>
+        </div>
         <ChartTab
           value={mode}
-          onChange={setMode}
+          onChange={(val) => setMode(val)}
           availableYears={availableYears}
           selectedYear={selectedYear}
-          onYearChange={setSelectedYear}
+          onYearChange={(val) => setSelectedYear(val)}
         />
       </div>
-      <div className="max-w-full overflow-x-auto custom-scrollbar">
-        <div className="-ml-5 min-w-[650px] xl:min-w-full pl-2">
-          <Chart options={options} series={series} type="bar" height={180} />
-        </div>
+      <div className="mt-6">
+        {loading ? (
+          <div className="flex justify-center items-center h-44">
+            <LoadingSpinner size={48} />
+          </div>
+        ) : (
+          <div className="max-w-full overflow-x-auto custom-scrollbar">
+            <div className="-ml-5 min-w-[650px] xl:min-w-full pl-2">
+              <Chart options={options} series={series} type="bar" height={180} />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
