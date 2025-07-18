@@ -7,7 +7,6 @@ import { Navigate } from "react-router-dom";
 const CompanyPage = () => {
   const role = useUserRole();
 
-  // Optional: Handle loading state if your useUserRole hook might be async
   if (role === null) {
     return <LoadingSpinner />;
   }

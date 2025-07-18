@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { FiPlus, FiEdit2, FiTrash2 } from "react-icons/fi";
 import {
@@ -85,7 +84,9 @@ export default function TowingCompanyManagement() {
   };
 
   const handleDelete = async (id: string) => {
-    const confirmed = await confirm("Are you sure you want to delete this company?");
+    const confirmed = await confirm(
+      "Are you sure you want to delete this company?"
+    );
     if (!confirmed) return;
     try {
       await deleteCompany(id);

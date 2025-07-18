@@ -8,6 +8,7 @@ import {
   doc,
   getDoc,
   updateDoc as updateCompanyDoc,
+  Timestamp,
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../../../firebase";
@@ -24,6 +25,7 @@ interface Operator {
   isVerified: boolean;
   vehicleTypes: string[];
   companyId: string;
+  createdAt: Timestamp;
 }
 
 interface Company {
@@ -106,6 +108,7 @@ export default function TowingStaffManagement() {
             isVerified: data.isVerified || false,
             vehicleTypes: data.vehicleTypes || [],
             companyId: data.companyId || "",
+            createdAt: data.createdAt || "",
           } as Operator;
         }
         return null;
