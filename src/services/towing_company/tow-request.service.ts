@@ -1,6 +1,6 @@
 // src/services/user.service.ts
 import { getFirestore, collection, getDocs } from "firebase/firestore";
-import { TowRequest } from "../pages/types/TowReuest";
+import { TowRequest } from "../../pages/types/TowReuest";
 
 class TowRequestService {
   private db = getFirestore();

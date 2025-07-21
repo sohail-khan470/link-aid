@@ -6,7 +6,6 @@ import {
   ListIcon,
   PlugInIcon,
   UserCircleIcon,
-  PieChartIcon,
 } from "../icons";
 import { FiHome } from "react-icons/fi";
 import { useSidebar } from "../context/SidebarContext";
@@ -15,11 +14,16 @@ import { doc, getDoc } from "firebase/firestore";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
 import { auth, db } from "../../firebase";
 import {
+  AlarmCheck,
   BuildingIcon,
   CarFrontIcon,
+  File,
   FileHeart,
+  FileText,
+  Hourglass,
   LayoutDashboard,
   ListTodo,
+  PaperclipIcon,
   ShieldIcon,
   ShieldUser,
   UserIcon,
@@ -45,34 +49,36 @@ const superAdminNavItems: NavItem[] = [
     path: "/admin/insurance-management",
   },
   {
-    icon: <UserIcon />,
-    name: "Profile",
-    path: "/profile",
-  },
-  {
     icon: <BuildingIcon />,
     name: "Towing Companies",
     path: "/admin/towing-management",
+  },
+  {
+    icon: <FileText />,
+    name: "Claims",
+    path: "/admin/insurance-claims",
   },
   {
     icon: <ShieldUser />,
     name: "Responders",
     path: "/responders",
   },
+
   {
-    icon: <FileHeart />,
-    name: "Emergency-Reports",
-    path: "/responders/emergency-reports",
+    icon: <AlarmCheck />,
+    name: "Emergency Reports",
+    path: "/admin/emergency-reports",
+  },
+
+  {
+    name: "Tow Requests",
+    icon: <Hourglass />,
+    path: "/admin/tow-requests",
   },
   {
     icon: <ListTodo />,
     name: "Action-Logs",
-    subItems: [
-      { name: "ResponderLogs", path: "/action-logs/responders" },
-      { name: "CivillianLogs", path: "/action-logs/civillian " },
-      { name: "InsuranceLogs", path: "/action-logs/insurance" },
-      { name: "TowOperatorLogs", path: "/action-logs/towing" },
-    ],
+    path: "/admin/action-logs",
   },
 ];
 

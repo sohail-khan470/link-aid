@@ -113,7 +113,7 @@ const Header: React.FC<HeaderProps> = ({ onClick, onToggle }) => {
 
           <div className="hidden lg:block">
             <form action="https://formbold.com/s/unique_form_id" method="POST">
-              <div className="relative">
+              {/* <div className="relative">
                 <button className="absolute -translate-y-1/2 left-4 top-1/2">
                   <svg
                     className="fill-gray-500 dark:fill-gray-400"
@@ -141,7 +141,7 @@ const Header: React.FC<HeaderProps> = ({ onClick, onToggle }) => {
                   <span> ⌘ </span>
                   <span> K </span>
                 </button>
-              </div>
+              </div> */}
             </form>
           </div>
         </div>

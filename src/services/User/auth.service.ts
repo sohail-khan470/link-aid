@@ -9,7 +9,7 @@ import {
   Auth,
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
-import { auth, db } from "../../firebase";
+import { auth, db } from "../../../firebase";
 
 // Helper function to handle error messages
 const getErrorMessage = (error: unknown): string => {

@@ -233,13 +233,13 @@ export default function TowingStaffManagement() {
                             : "bg-yellow-100 text-yellow-800"
                         }`}
                       >
-                        {operator.isVerified ? "Verified" : "Pending"}
+                        {operator.isVerified ? "Verified" : "Not Verified"}
                       </span>
                     </div>
                     {operator.vehicleTypes?.length > 0 && (
                       <div className="text-sm text-gray-600 mt-2">
                         <span className="font-medium">Vehicle Types:</span>{" "}
-                        {operator.vehicleTypes.join(", ")}
+                        {operator.vehicleTypes.join(",")}
                       </div>
                     )}
                   </div>
