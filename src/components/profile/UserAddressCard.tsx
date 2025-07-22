@@ -39,7 +39,7 @@ export default function UserAddressCard() {
                   City/State
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  {profile?.location || " Not specified"}
+                  {/* {profile?.location || " Not specified"} */}
                 </p>
               </div>
 
@@ -106,7 +106,7 @@ export default function UserAddressCard() {
 
                 <div>
                   <Label>City/State</Label>
-                  <Input type="text" value={profile?.location || "N/A"} />
+                  {/* <Input type="text" value={profile?.location || "N/A"} /> */}
                 </div>
 
                 <div>

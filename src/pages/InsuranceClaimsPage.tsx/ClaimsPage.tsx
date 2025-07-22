@@ -5,11 +5,11 @@ export default function InsurerClaimsPage() {
   return (
     <>
       <PageMeta
-        title="Towing Company Management | LinkAid Dashboard"
+        title="Insurance Company Management | LinkAid Dashboard"
         description="View and manage basic data tables in the LinkAid Admin Dashboard built with React and Tailwind CSS."
       />
 
-      <PageBreadcrumb pageTitle="Emergency Report Details" />
+      <PageBreadcrumb pageTitle="Claims Table" />
       <div className="space-y-6">
         <ClaimsManagement />
       </div>

@@ -47,7 +47,7 @@ export default function CompanyDashboard() {
   if (loading) return <LoadingSpinner />;
 
   if (role === "towing_company") return <TowingCompanyDashboard />;
-  if (role === "insurance_company") return <InsuranceCompanyDashboard />;
+  if (role === "insurer") return <InsuranceCompanyDashboard />;
   if (role === "super_admin") return <AdminDashboard />;
 
   return <p>You are not authorized to access this page.</p>;

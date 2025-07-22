@@ -35,6 +35,7 @@ import EmergencyReportDetailsPage from "./pages/EmergencyReports/EmergencyReport
 import InsurerClaimsPage from "./pages/InsuranceClaimsPage.tsx/ClaimsPage";
 import TowRequestsPage from "./pages/TowRequestPage/TowRequestPage";
 import ActionLogPage from "./pages/ActionLogsPage/ActionLogPage";
+import InsuranceStaffPage from "./pages/InsuranceCompany/InsuranceStaffPage";
 
 // Types
 interface FirebaseUserData {
@@ -131,6 +132,12 @@ export default function App() {
               <Route path="/towing/staff" element={<StaffMangement />} />
               <Route path="/towing/requests" element={<TowingRequestPage />} />
               <Route path="/towing/vehicles" element={<VehiclesManagement />} />
+            </Route>
+
+            {/* insurer Company Routes */}
+            <Route element={<RoleRoute allowedRoles={["insurer"]} />}>
+              <Route path="/insurer/staff" element={<InsuranceStaffPage />} />
+              <Route path="/insurer/claims" element={<InsurerClaimsPage />} />
             </Route>
           </Route>
         </Route>
