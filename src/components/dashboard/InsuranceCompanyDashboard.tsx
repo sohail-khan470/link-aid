@@ -5,7 +5,6 @@ import StatisticsChart from "../ecommerce/StatisticsChart";
 export default function InsuranceCompanyDashboard() {
   return (
     <>
-      <h1>Insurance Dashboard</h1>
       <PageMeta
         title="React.js Ecommerce Dashboard | TailAdmin - React.js Admin Dashboard Template"
         description="This is React.js Ecommerce Dashboard page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
@@ -15,7 +14,7 @@ export default function InsuranceCompanyDashboard() {
           <StatisticsChart />
         </div>
 
-        <div className="col-span-12 xl:col-span-7">
+        <div className="col-span-12 ">
           <RecentOrders />
         </div>
       </div>

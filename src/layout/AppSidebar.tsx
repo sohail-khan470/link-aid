@@ -17,16 +17,12 @@ import {
   AlarmCheck,
   BuildingIcon,
   CarFrontIcon,
-  File,
-  FileHeart,
   FileText,
   Hourglass,
   LayoutDashboard,
   ListTodo,
-  PaperclipIcon,
   ShieldIcon,
   ShieldUser,
-  UserIcon,
 } from "lucide-react";
 
 type NavItem = {
@@ -110,6 +106,29 @@ const towingCompanyNavItems: NavItem[] = [
   },
 ];
 
+const insurerCompanyNavItems: NavItem[] = [
+  {
+    icon: <FiHome />,
+    name: "Home",
+    path: "/home",
+  },
+  {
+    icon: <UserCircleIcon />,
+    name: "Company Profile",
+    path: "/profile",
+  },
+  {
+    icon: <UserCircleIcon />,
+    name: "Insurers",
+    path: "/insurer/staff",
+  },
+  {
+    name: "Claims",
+    icon: <ListIcon />,
+    path: "/insurer/claims",
+  },
+];
+
 const othersItems: NavItem[] = [
   {
     icon: <PlugInIcon />,
@@ -159,6 +178,8 @@ const AppSidebar: React.FC = () => {
       return superAdminNavItems;
     } else if (role === "towing_company") {
       return towingCompanyNavItems;
+    } else if (role == "insurer") {
+      return insurerCompanyNavItems;
     }
     return [];
   }, [role]);
