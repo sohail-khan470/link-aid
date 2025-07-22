@@ -14,8 +14,8 @@ const CompanyPage = () => {
   return (
     <>
       {role === "towing_company" && <TowingCompanyPage />}
-      {role === "insurance_company" && <InsuranceCompanyPage />}
-      {!["towing_company", "insurance_company"].includes(role) && (
+      {role === "insurer" && <InsuranceCompanyPage />}
+      {!["towing_company", "insurer"].includes(role) && (
         <Navigate to="/home" replace />
       )}
     </>

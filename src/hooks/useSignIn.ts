@@ -34,9 +34,9 @@ export function useSignIn() {
     await updateDoc(userRef, { lastLogin: serverTimestamp() });
 
     const roleRoutes: Record<string, string> = {
-      super_admin: "/",
-      civilian: "/home",
+      super_admin: "/home",
       towing_company: "/home",
+      insurer: "/home",
     };
 
     if (roleRoutes[role]) {

@@ -4,7 +4,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth, firestore } from "../../firebase";
 import { getDoc, doc } from "firebase/firestore";
 
-type UserRole = "super_admin" | "towing_company" | "insurance_company" | null;
+type UserRole = "super_admin" | "towing_company" | "insurer" | null;
 
 export const useUserRole = (): UserRole => {
   const [role, setRole] = useState<UserRole>(null);

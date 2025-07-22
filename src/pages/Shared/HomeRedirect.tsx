@@ -25,7 +25,7 @@ export default function HomeRedirect() {
         if (
           role === "super_admin" ||
           role === "towing_company" ||
-          role === "inurance_company"
+          role === "insurer"
         ) {
           setRedirectPath("/home");
         } else {
