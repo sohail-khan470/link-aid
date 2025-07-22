@@ -23,6 +23,9 @@ export const RoleRoute = ({ allowedRoles }: RoleRouteProps) => {
     if (role === "towing_company") {
       return <Navigate to="/company/home" state={{ from: location }} replace />;
     }
+    if (role === "insurer") {
+      return <Navigate to="/company/home" state={{ from: location }} replace />;
+    }
     return <Navigate to="/unauthorized" replace />;
   }
 
