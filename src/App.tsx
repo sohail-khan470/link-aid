@@ -33,6 +33,9 @@ import { RoleRoute } from "./components/auth/RoleRoute";
 import EmergencyReportsPage from "./pages/EmergencyReports/EmergencyReportsPage";
 import EmergencyReportDetailsPage from "./pages/EmergencyReports/EmergencyReportDetailsPage";
 import InsurerClaimsPage from "./pages/InsuranceClaimsPage.tsx/ClaimsPage";
+import TowRequestsPage from "./pages/TowRequestPage/TowRequestPage";
+import ActionLogPage from "./pages/ActionLogsPage/ActionLogPage";
+import InsuranceStaffPage from "./pages/InsuranceCompany/InsuranceStaffPage";
 
 // Types
 interface FirebaseUserData {
@@ -109,24 +112,32 @@ export default function App() {
               />
               <Route path="/responders" element={<RespondersPage />} />
               <Route
-                path="/responders/emergency-reports"
+                path="/admin/emergency-reports"
                 element={<EmergencyReportsPage />}
               />
               <Route
                 path="/admin/insurance-claims"
                 element={<InsurerClaimsPage />}
               />
+              <Route path="/admin/tow-requests" element={<TowRequestsPage />} />
               <Route
                 path="/emergency-reports/:id"
                 element={<EmergencyReportDetailsPage />}
               />
             </Route>
+            <Route path="/admin/action-logs" element={<ActionLogPage />} />
 
             {/* Towing Company Routes */}
             <Route element={<RoleRoute allowedRoles={["towing_company"]} />}>
               <Route path="/towing/staff" element={<StaffMangement />} />
               <Route path="/towing/requests" element={<TowingRequestPage />} />
               <Route path="/towing/vehicles" element={<VehiclesManagement />} />
+            </Route>
+
+            {/* insurer Company Routes */}
+            <Route element={<RoleRoute allowedRoles={["insurer"]} />}>
+              <Route path="/insurer/staff" element={<InsuranceStaffPage />} />
+              <Route path="/insurer/claims" element={<InsurerClaimsPage />} />
             </Route>
           </Route>
         </Route>

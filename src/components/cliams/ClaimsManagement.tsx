@@ -14,7 +14,7 @@ export default function ClaimsManagement() {
   const { claims, loading, error } = useClaims();
 
   return (
-    <ComponentCard title="Claims">
+    <ComponentCard title="Claims List">
       {loading ? (
         <div className="p-4 flex justify-center">
           <LoadingSpinner />
@@ -49,34 +49,49 @@ export default function ClaimsManagement() {
                   ))}
                 </TableRow>
               </TableHeader>
+
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                 {claims.map((claim, index) => (
                   <TableRow
                     key={claim.id}
                     className="hover:bg-blue-50 dark:hover:bg-white/5 transition"
                   >
-                    <TableCell className="py-3 px-5">{index + 1}</TableCell>
-                    <TableCell className="py-3 px-5">{claim.userId}</TableCell>
-                    <TableCell className="py-3 px-5">
+                    <TableCell className="py-3 px-5 text-gray-800 dark:text-gray-300">
+                      {index + 1}
+                    </TableCell>
+
+                    <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
+                      {claim.userId}
+                    </TableCell>
+
+                    <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
                       {claim.category}
                     </TableCell>
-                    <TableCell className="py-3 px-5 truncate max-w-xs">
+
+                    <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400 max-w-xs truncate">
                       {claim.description}
                     </TableCell>
+
                     <TableCell className="py-3 px-5">
                       <Badge
                         color={claim.status === "open" ? "success" : "warning"}
                       >
-                        {claim.status}
+                        {claim.status.charAt(0).toUpperCase() +
+                          claim.status.slice(1)}
                       </Badge>
                     </TableCell>
-                    <TableCell className="py-3 px-5">
-                      {claim.updatedAt?.toDate()?.toLocaleString() ?? "N/A"}
+
+                    <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
+                      {claim.updatedAt?.toDate
+                        ? claim.updatedAt.toDate().toLocaleDateString()
+                        : "N/A"}
                     </TableCell>
-                    <TableCell className="py-3 px-5">
+
+                    <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
                       {claim.images.length} image(s)
                     </TableCell>
-                    <TableCell className="py-3 px-5">
+
+                    <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
                       {claim.assignedInsurerId ?? "Unassigned"}
                     </TableCell>
                   </TableRow>
@@ -86,6 +101,7 @@ export default function ClaimsManagement() {
           </div>
         </div>
       )}
+
       {error && (
         <p className="text-red-500 mt-4 text-sm text-center">{error}</p>
       )}
