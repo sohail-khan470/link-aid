@@ -2,7 +2,6 @@ import EcommerceMetrics from "../ecommerce/EcommerceMetrics";
 import StatisticsChart from "../ecommerce/StatisticsChart";
 import MonthlyTarget from "../ecommerce/MonthlyTarget";
 import RecentOrders from "../ecommerce/RecentOrders";
-import DemographicCard from "../ecommerce/DemographicCard";
 import PageMeta from "../common/PageMeta";
 import MonthlyRegistrationsChart from "../ecommerce/MonthlyRegistrationsChart";
 
@@ -29,10 +28,10 @@ export default function AdminDashboard() {
         </div>
 
         <div className="col-span-12 xl:col-span-5">
-          <DemographicCard />
+          {/* <DemographicCard /> */}
         </div>
 
-        <div className="col-span-12 xl:col-span-7">
+        <div className="col-span-12">
           <RecentOrders />
         </div>
       </div>
