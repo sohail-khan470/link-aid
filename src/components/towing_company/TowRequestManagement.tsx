@@ -1,16 +1,16 @@
 // TowingRequestManagement.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { auth } from "../../../firebase";
 import { useTowRequest } from "../../hooks/useTowRequest";
 import axios from "axios";
 import LoadingSpinner from "../ui/LoadingSpinner";
 import MapComponent from "../map/MapComponent";
+import Button from "../ui/button/Button";
 
 const TowingRequestManagement = () => {
   const {
     towRequests,
     loading,
-    error,
     formLoading,
     createTowRequest,
     updateTowRequest,
@@ -53,22 +53,6 @@ const TowingRequestManagement = () => {
     }
   };
 
-  // Update coordinates and center when search query changes
-  // useEffect(() => {
-  //   const updateCoords = async () => {
-  //     if (searchQuery) {
-  //       const coords = await fetchCoordinates(searchQuery);
-  //       if (coords) {
-  //         setFormData((prev) => ({
-  //           ...prev,
-  //           location: { lat: coords[0], lng: coords[1] },
-  //         }));
-  //         setCenter(coords);
-  //       }
-  //     }
-  //   };
-  //   updateCoords();
-  // }, [searchQuery]);
   const handleUpdateMap = async () => {
     if (!searchQuery) return;
 
@@ -132,13 +116,13 @@ const TowingRequestManagement = () => {
           placeholder="Search city or area (e.g., Islamabad, Lahore)"
           className="w-full p-2 border rounded"
         />
-        <button
+        <Button
           onClick={handleUpdateMap}
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
           disabled={!searchQuery || isLoadingCoords}
         >
           {isLoadingCoords ? "Searching..." : "Set Location"}
-        </button>
+        </Button>
         {isLoadingCoords && <LoadingSpinner />}
       </div>
 
@@ -168,7 +152,7 @@ const TowingRequestManagement = () => {
           )}
         </div>
 
-        <button
+        <Button
           type="submit"
           disabled={formLoading || formData.location.lat === 0}
           className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 disabled:bg-gray-400"
@@ -178,7 +162,7 @@ const TowingRequestManagement = () => {
             : currentRequest
             ? "Update Request"
             : "Create Request"}
-        </button>
+        </Button>
         {isLoadingCoords && <LoadingSpinner />}
       </form>
 
@@ -218,7 +202,7 @@ const TowingRequestManagement = () => {
                 </p>
               </div>
               <div className="space-x-2">
-                <button
+                <Button
                   onClick={() => {
                     setCurrentRequest(request.id);
                     setFormData({
@@ -230,22 +214,22 @@ const TowingRequestManagement = () => {
                   className="bg-yellow-500 text-white px-2 py-1 rounded"
                 >
                   Edit
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => deleteTowRequest(request.id)}
                   className="bg-red-500 text-white px-2 py-1 rounded"
                 >
                   Delete
-                </button>
+                </Button>
                 {request.status === "requested" && (
-                  <button
+                  <Button
                     onClick={() =>
                       updateTowRequest(request.id, { status: "cancelled" })
                     }
                     className="bg-gray-500 text-white px-2 py-1 rounded"
                   >
                     Cancel
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
