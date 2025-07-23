@@ -51,6 +51,8 @@ export default function App() {
     null
   );
 
+  console.log(auth.currentUser, "UUUUUUUUUUU");
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);

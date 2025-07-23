@@ -1,9 +1,9 @@
-import TowingRequestManagement from "../../components/towing_company/TowRequestManagement";
+import TowRequestsPage from "../TowRequestPage/TowRequestPage";
 
 const TowingRequestPage = () => {
   return (
     <>
-      <TowingRequestManagement />
+      <TowRequestsPage />
     </>
   );
 };

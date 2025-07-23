@@ -99,11 +99,6 @@ const towingCompanyNavItems: NavItem[] = [
     icon: <ListIcon />,
     path: "/towing/requests",
   },
-  {
-    name: "Vehicles",
-    icon: <CarFrontIcon />,
-    path: "/towing/vehicles",
-  },
 ];
 
 const insurerCompanyNavItems: NavItem[] = [
