@@ -9,7 +9,14 @@ import {
 import Badge from "../../components/ui/badge/Badge";
 import ComponentCard from "../common/ComponentCard";
 import { useTowRequests } from "../../hooks/useTowRequests";
-import { doc, updateDoc } from "firebase/firestore";
+import {
+  doc,
+  updateDoc,
+  getDoc,
+  addDoc,
+  collection,
+  serverTimestamp,
+} from "firebase/firestore";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { db, auth } from "../../../firebase";
 import { useOperators } from "../../hooks/useOperators";
@@ -22,7 +29,8 @@ export default function TowRequestsTable() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
 
-  // Get current user from Firebase Auth
+  console.log("object", requests);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
@@ -66,14 +74,33 @@ export default function TowRequestsTable() {
         matchedOperatorId: editData.assignedOperatorId || null,
       };
 
-      // Add companyId if not already present
       if (currentUser?.uid) {
         updates.companyId = currentUser.uid;
       }
 
       await updateDoc(doc(db, "tow_requests", requestId), updates);
+
+      // ✅ Log action
+      if (currentUser) {
+        const userSnap = await getDoc(doc(db, "users", currentUser.uid));
+        const userData = userSnap.exists() ? userSnap.data() : null;
+
+        if (userData && userData.role !== "super_admin") {
+          await addDoc(collection(db, "actions_log"), {
+            userId: currentUser.uid,
+            userName: userData.fullName ?? "Unknown",
+            role: userData.role ?? "unknown",
+            action: "Update Tow Request",
+            description: `${
+              userData.fullName ?? "User"
+            } updated a tow request (ID: ${requestId}).`,
+            timestamp: serverTimestamp(),
+          });
+        }
+      }
+
       setEditingId(null);
-      refetch(); // Refresh the data
+      refetch();
     } catch (error) {
       console.error("Error updating request:", error);
       alert("Failed to update request");
@@ -88,7 +115,6 @@ export default function TowRequestsTable() {
   return (
     <ComponentCard
       title="Tow Requests"
-      className="shadow-xl rounded-2xl bg-white dark:bg-gray-800"
     >
       {loading ? (
         <div className="p-8 flex justify-center items-center">
@@ -131,19 +157,16 @@ export default function TowRequestsTable() {
                     key={r.id}
                     className="hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150"
                   >
-                    {/* Civilian */}
                     <TableCell className="px-6 py-4">
                       <div>
                         <span className="block font-medium text-gray-900 dark:text-gray-100">
                           {r.civilianName}
                         </span>
                         <span className="block text-gray-500 dark:text-gray-400 text-xs">
-                          Civilian
+                          {r.role}
                         </span>
                       </div>
                     </TableCell>
-
-                    {/* Vehicle Type */}
                     <TableCell className="px-6 py-4">
                       {isEditing ? (
                         <input
@@ -164,8 +187,6 @@ export default function TowRequestsTable() {
                         </span>
                       )}
                     </TableCell>
-
-                    {/* Status */}
                     <TableCell className="px-6 py-4">
                       {isEditing ? (
                         <select
@@ -187,8 +208,6 @@ export default function TowRequestsTable() {
                         </Badge>
                       )}
                     </TableCell>
-
-                    {/* Tow Operator */}
                     <TableCell className="px-6 py-4">
                       {isEditing ? (
                         <OperatorDropdown
@@ -207,8 +226,6 @@ export default function TowRequestsTable() {
                         </span>
                       )}
                     </TableCell>
-
-                    {/* ETA (min) */}
                     <TableCell className="px-6 py-4">
                       {isEditing ? (
                         <input
@@ -230,8 +247,6 @@ export default function TowRequestsTable() {
                         </span>
                       )}
                     </TableCell>
-
-                    {/* Notes */}
                     <TableCell className="px-6 py-4">
                       {isEditing ? (
                         <textarea
@@ -240,8 +255,8 @@ export default function TowRequestsTable() {
                           onChange={(e) =>
                             setEditData({ ...editData, notes: e.target.value })
                           }
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          rows={2}
+                          className="resize-none w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          rows={1}
                           placeholder="Notes"
                         />
                       ) : (
@@ -250,15 +265,18 @@ export default function TowRequestsTable() {
                         </span>
                       )}
                     </TableCell>
-
-                    {/* Requested At */}
                     <TableCell className="px-6 py-4">
                       <span className="text-gray-900 dark:text-gray-100">
-                        {r.createdAtFormatted || "-"}
+                        {r.requestedAt?.toDate().toLocaleString("en-GB", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        }) || "-"}
                       </span>
                     </TableCell>
-
-                    {/* Actions */}
                     <TableCell className="px-6 py-4">
                       {isEditing ? (
                         <div className="flex gap-2">
@@ -301,7 +319,6 @@ export default function TowRequestsTable() {
   );
 }
 
-// Operator Dropdown Component
 function OperatorDropdown({
   value,
   onChange,

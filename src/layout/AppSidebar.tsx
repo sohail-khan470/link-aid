@@ -16,7 +16,6 @@ import { auth, db } from "../../firebase";
 import {
   AlarmCheck,
   BuildingIcon,
-  CarFrontIcon,
   FileText,
   Hourglass,
   LayoutDashboard,
@@ -429,13 +428,7 @@ const AppSidebar: React.FC = () => {
                     ? "lg:justify-center"
                     : "justify-start"
                 }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? (
-                  "Others"
-                ) : (
-                  <HorizontaLDots />
-                )}
-              </h2>
+              ></h2>
               {renderMenuItems(filteredOthersItems, "others")}
             </div>
           </div>
