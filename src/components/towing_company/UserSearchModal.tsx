@@ -55,7 +55,8 @@ export default function UserSearchModal({
       const usersRef = collection(db, "users");
       const userQuery = query(
         usersRef,
-        where("email", "==", searchEmail.trim())
+        where("email", "==", searchEmail.trim()),
+        where("role", "==", "civilian") // ✅ Enforce civilian role
       );
       const userSnapshot = await getDocs(userQuery);
 
