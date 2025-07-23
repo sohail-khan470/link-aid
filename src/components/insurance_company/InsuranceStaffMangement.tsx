@@ -236,7 +236,14 @@ export default function InsuranceStaffManagement() {
                       {/* UpdatedAt */}
                       <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
                         {staff.updatedAt?.toDate
-                          ? staff.updatedAt.toDate().toLocaleDateString()
+                          ? staff.updatedAt.toDate().toLocaleString("en-GB", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: true, // 24-hour format
+                            })
                           : staff.createdAt}
                       </TableCell>
 

@@ -28,7 +28,12 @@ export default function NotificationDropdown() {
             <span className="absolute inline-flex w-full h-full bg-orange-400 rounded-full opacity-75 animate-ping"></span>
           </span>
         )}
-        <svg className="fill-current" width="20" height="20" viewBox="0 0 20 20">
+        <svg
+          className="fill-current"
+          width="20"
+          height="20"
+          viewBox="0 0 20 20"
+        >
           <path
             fillRule="evenodd"
             clipRule="evenodd"
@@ -88,7 +93,15 @@ export default function NotificationDropdown() {
                     <span className="flex items-center gap-2 text-gray-500 text-theme-xs dark:text-gray-400">
                       <span>{log.role}</span>
                       <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
-                      <span>{moment(log.timestamp.toDate()).fromNow()}</span>
+                      <span>
+                        {(() => {
+                          try {
+                            return moment(log.timestamp.toDate()).fromNow();
+                          } catch {
+                            return "";
+                          }
+                        })()}
+                      </span>
                     </span>
                   </span>
                 </DropdownItem>
