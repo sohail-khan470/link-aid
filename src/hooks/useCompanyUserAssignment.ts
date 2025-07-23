@@ -101,6 +101,7 @@ export const useStaffAssignment = () => {
         role: newRole,
         companyId,
         isVerified: true,
+        updatedAt: new Date(),
       });
 
       toast.success("User added to your company.");

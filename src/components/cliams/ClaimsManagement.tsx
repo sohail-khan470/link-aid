@@ -12,6 +12,7 @@ import LoadingSpinner from "../ui/LoadingSpinner";
 
 export default function ClaimsManagement() {
   const { claims, loading, error } = useClaims();
+  console.log("claims", claims);
 
   return (
     <ComponentCard title="Claims List">
@@ -31,13 +32,13 @@ export default function ClaimsManagement() {
                 <TableRow>
                   {[
                     "S:No",
-                    "User ID",
+                    "Name",
                     "Category",
                     "Description",
                     "Status",
                     "Submitted At",
-                    "Images",
-                    "Assigned Insurer",
+                    "Role",
+                    // "Assigned Insurer",
                   ].map((heading) => (
                     <TableCell
                       key={heading}
@@ -61,20 +62,21 @@ export default function ClaimsManagement() {
                     </TableCell>
 
                     <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
-                      {claim.userId}
+                      {claim?.fullName.charAt(0).toUpperCase() +
+                        claim?.fullName.slice(1) || "N/A"}
                     </TableCell>
 
                     <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
-                      {claim.category}
+                      {claim?.category || "N/A"}
                     </TableCell>
 
                     <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400 max-w-xs truncate">
-                      {claim.description}
+                      {claim?.description || "N/A"}
                     </TableCell>
 
                     <TableCell className="py-3 px-5">
                       <Badge
-                        color={claim.status === "open" ? "success" : "warning"}
+                        color={claim?.status === "open" ? "success" : "warning"}
                       >
                         {claim.status.charAt(0).toUpperCase() +
                           claim.status.slice(1)}
@@ -88,12 +90,16 @@ export default function ClaimsManagement() {
                     </TableCell>
 
                     <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
-                      {claim.images.length} image(s)
+                      <Badge
+                        color={claim?.role === "civilian" ? "success" : "dark"}
+                      >
+                        {claim?.role}
+                      </Badge>
                     </TableCell>
-
+                    {/* 
                     <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
                       {claim.assignedInsurerId ?? "Unassigned"}
-                    </TableCell>
+                    </TableCell> */}
                   </TableRow>
                 ))}
               </TableBody>

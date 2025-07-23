@@ -22,7 +22,7 @@ export default function ActionsLogTable() {
         return "warning";
       case "responder":
         return "primary";
-      case "tow_operator":
+      case "towing_company":
         return "success";
       case "super_admin":
         return "error";
