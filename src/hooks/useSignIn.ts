@@ -9,6 +9,7 @@ import {
 import { toast } from "react-toastify";
 import { doc, updateDoc, serverTimestamp, getDoc } from "firebase/firestore";
 import { auth, db } from "../../firebase";
+import { logAction } from "../utils/logAction";
 
 export function useSignIn() {
   const [showPassword, setShowPassword] = useState(false);
@@ -29,9 +30,21 @@ export function useSignIn() {
     }
 
     const userData = userSnap.data();
-    const role = userData?.role;
+    const role = userData?.role ?? "unknown";
+    const userName = userData?.fullName ?? "Unknown";
 
     await updateDoc(userRef, { lastLogin: serverTimestamp() });
+
+    // ✅ Exclude super_admin from logging
+    if (role !== "super_admin") {
+      await logAction({
+        userId: uid,
+        userName,
+        role,
+        action: "Sign In",
+        description: `${userName} signed into the system.`,
+      });
+    }
 
     const roleRoutes: Record<string, string> = {
       super_admin: "/home",
@@ -58,6 +71,31 @@ export function useSignIn() {
       if (!user?.uid) {
         throw new Error("Google Sign-In failed. No user information received.");
       }
+
+      // ✅ Fetch user data from Firestore
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        throw new Error("User profile not found for Google sign-in.");
+      }
+
+      const userData = userSnap.data();
+      const role = userData?.role ?? "unknown";
+      const userName = userData?.fullName ?? "Unknown";
+
+      // ✅ Exclude super_admin from log
+      if (role !== "super_admin") {
+        await logAction({
+          userId: user.uid,
+          userName,
+          role,
+          action: "Sign In",
+          description: `${userName} signed in with Google.`,
+        });
+      }
+
+      await updateDoc(userRef, { lastLogin: serverTimestamp() });
 
       await handlePostSignIn(user.uid);
     } catch (err: any) {

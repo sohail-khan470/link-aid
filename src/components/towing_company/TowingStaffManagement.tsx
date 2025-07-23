@@ -12,6 +12,7 @@ import Badge from "../ui/badge/Badge";
 import { Operator } from "../../pages/types/Company";
 import LoadingSpinner from "../ui/LoadingSpinner";
 import UserSearchModal from "./UserSearchModal";
+import { Pencil, Save, Trash2, X } from "lucide-react";
 
 export default function TowingStaffManagement() {
   const { company, operators, loading, error, updateOperator, refreshData } =
@@ -111,7 +112,7 @@ export default function TowingStaffManagement() {
               d="M12 4v16m8-8H4"
             />
           </svg>
-          Search & Assign User
+          Search
         </button>
       }
       className="shadow-xl rounded-2xl bg-white dark:bg-gray-800"
@@ -287,29 +288,38 @@ export default function TowingStaffManagement() {
                     </TableCell>
 
                     {/* Actions */}
-                    <TableCell className="px-6 py-4">
+                    <TableCell className="py-4 items-center justify-center flex">
                       {isEditing ? (
-                        <div className="flex gap-3">
+                        <div className="flex gap-2">
                           <button
                             onClick={handleOperatorUpdate}
-                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 text-sm font-medium"
+                            className="text-green-600 hover:text-green-800"
                           >
-                            Save
+                            <Save size={16} />
                           </button>
                           <button
                             onClick={handleCancelEdit}
-                            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-200 text-sm font-medium"
+                            className="text-gray-500 hover:text-gray-700"
                           >
-                            Cancel
+                            <X size={16} />
                           </button>
                         </div>
                       ) : (
-                        <button
-                          onClick={() => handleEditClick(operator)}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 text-sm font-medium"
-                        >
-                          Edit
-                        </button>
+                        <div className="flex items-center text-center ">
+                          <button
+                            onClick={() => handleEditClick(operator)}
+                            className="text-blue-600 hover:text-blue-800 pr-1"
+                          >
+                            <Pencil size={16} />
+                          </button>
+
+                          <button
+                            // onClick={() => handleEditClick(operator)}
+                            className="text-red-600 hover:text-red-800 pl-1"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       )}
                     </TableCell>
                   </TableRow>

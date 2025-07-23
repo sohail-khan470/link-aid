@@ -237,7 +237,7 @@ export default function InsuranceStaffManagement() {
                       <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
                         {staff.updatedAt?.toDate
                           ? staff.updatedAt.toDate().toLocaleDateString()
-                          : "N/A"}
+                          : staff.createdAt}
                       </TableCell>
 
                       {/* Actions */}
