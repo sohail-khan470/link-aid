@@ -4,14 +4,10 @@ import { ApexOptions } from "apexcharts";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../../../firebase";
 import LoadingSpinner from "../ui/LoadingSpinner";
-import { Dropdown } from "../ui/dropdown/Dropdown";
-import { DropdownItem } from "../ui/dropdown/DropdownItem";
-import { MoreDotIcon } from "../../icons";
 
 export default function MonthlyTarget() {
   const [series, setSeries] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isOpen, setIsOpen] = useState(false);
 
   const labels = ["Civilians", "Insurer", "Tow Company", "Responders"];
   const roles = ["civilian", "insurer", "towing_company", "responder"];
@@ -30,9 +26,10 @@ export default function MonthlyTarget() {
         })
       );
 
-      
-
-      const totalRelevantUsers = roleCounts.reduce((sum, count) => sum + count, 0);
+      const totalRelevantUsers = roleCounts.reduce(
+        (sum, count) => sum + count,
+        0
+      );
 
       const percentages = roleCounts.map((count) =>
         totalRelevantUsers > 0
@@ -46,9 +43,6 @@ export default function MonthlyTarget() {
 
     fetchRoleData();
   }, []);
-
-  const toggleDropdown = () => setIsOpen(!isOpen);
-  const closeDropdown = () => setIsOpen(false);
 
   const options: ApexOptions = {
     chart: {
@@ -69,8 +63,7 @@ export default function MonthlyTarget() {
           total: {
             show: true,
             label: "Total",
-            formatter: () =>
-              `${series.reduce((a, b) => a + b, 0).toFixed(0)}%`,
+            formatter: () => `${series.reduce((a, b) => a + b, 0).toFixed(0)}%`,
           },
         },
       },
@@ -97,15 +90,6 @@ export default function MonthlyTarget() {
             <p className="mt-1 text-gray-500 text-theme-sm dark:text-gray-400">
               How users are distributed by roles
             </p>
-          </div>
-          <div className="relative inline-block">
-            <button className="dropdown-toggle" onClick={toggleDropdown}>
-              <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 size-6" />
-            </button>
-            <Dropdown isOpen={isOpen} onClose={closeDropdown} className="w-40 p-2">
-              <DropdownItem onItemClick={closeDropdown}>View Details</DropdownItem>
-              <DropdownItem onItemClick={closeDropdown}>Export</DropdownItem>
-            </Dropdown>
           </div>
         </div>
 
