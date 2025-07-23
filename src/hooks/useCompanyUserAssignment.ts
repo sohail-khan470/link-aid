@@ -7,10 +7,12 @@ import {
   getDocs,
   updateDoc,
   doc,
+  getDoc,
   serverTimestamp,
 } from "firebase/firestore";
 import { toast } from "react-toastify";
 import { auth } from "../../firebase";
+import { logAction } from "../utils/logAction"; // ✅ adjust path if needed
 
 const db = getFirestore();
 
@@ -20,9 +22,9 @@ export const useStaffAssignment = () => {
   const [userData, setUserData] = useState<any | null>(null);
   const [staffList, setStaffList] = useState<any[]>([]);
   const [companyId, setCompanyId] = useState<string | null>(null);
+  const [companyName, setCompanyName] = useState<string>("Unknown Company");
   const [editingStaff, setEditingStaff] = useState<any | null>(null);
 
-  // Load current company info on mount
   useEffect(() => {
     const fetchCompany = async () => {
       const currentUser = auth.currentUser;
@@ -32,22 +34,31 @@ export const useStaffAssignment = () => {
         collection(db, "insurance_company"),
         where("adminId", "==", currentUser.uid)
       );
-      const snapshot = await getDocs(q);
 
-      if (snapshot.empty) {
-        toast.error("No insurer company found for current admin.");
-        return;
+      try {
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+          toast.error("No insurer company found for current admin.");
+          return;
+        }
+
+        const companyDoc = snapshot.docs[0];
+        const companyData = companyDoc.data();
+        const companyName = companyData?.companyName || "Unknown Company";
+
+        setCompanyId(companyDoc.id);
+        setCompanyName(companyName);
+        fetchStaffList(companyDoc.id);
+      } catch (error) {
+        console.error("Error fetching company info:", error);
+        toast.error("Error fetching company info.");
       }
-
-      const companyDocId = snapshot.docs[0].id;
-      setCompanyId(companyDocId);
-      fetchStaffList(companyDocId);
     };
 
     fetchCompany();
   }, []);
 
-  // Search user by email
   const fetchUserByEmail = async () => {
     setLoading(true);
     setUserData(null);
@@ -72,7 +83,6 @@ export const useStaffAssignment = () => {
         return;
       }
 
-      // Check if already in staff list
       const isAlreadyStaff = staffList.some(
         (staff) => staff.email === searchEmail
       );
@@ -90,18 +100,38 @@ export const useStaffAssignment = () => {
     }
   };
 
-  // Assign role & link to company
   const assignRoleAndCompany = async (newRole: string) => {
     if (!userData || !companyId) return;
     const currentUser = auth.currentUser;
     if (!currentUser) return toast.error("Not authenticated.");
 
     try {
+      const currentUserRef = doc(db, "users", currentUser.uid);
+      const currentUserSnap = await getDoc(currentUserRef);
+      const currentUserData = currentUserSnap.data();
+      const currentUserName = currentUserData?.fullName ?? "Unknown";
+      const currentUserRole = currentUserData?.role ?? "unknown";
+
+      const companyDoc = await getDoc(doc(db, "insurance_company", companyId));
+      const companyName = companyDoc.exists()
+        ? companyDoc.data()?.companyName ?? "Unknown Company"
+        : "Unknown Company";
+
       await updateDoc(doc(db, "users", userData.id), {
         role: newRole,
         companyId,
         isVerified: true,
-        updatedAt: new Date(),
+        updatedAt: serverTimestamp(),
+      });
+
+      await logAction({
+        userId: currentUser.uid,
+        userName: currentUserName,
+        role: currentUserRole,
+        action: "Assign Staff",
+        description: `Assigned ${
+          userData.fullName ?? "User"
+        } to company ${companyName} as ${newRole}`,
       });
 
       toast.success("User added to your company.");
@@ -114,14 +144,48 @@ export const useStaffAssignment = () => {
     }
   };
 
-  // Delete staff
   const deleteStaff = async (id: string) => {
     try {
-      await updateDoc(doc(db, "users", id), {
+      const userRef = doc(db, "users", id);
+      const userSnap = await getDoc(userRef);
+      const targetUser = userSnap.data();
+
+      const currentUser = auth.currentUser;
+      if (!currentUser) return toast.error("Not authenticated.");
+
+      const currentUserRef = doc(db, "users", currentUser.uid);
+      const currentUserSnap = await getDoc(currentUserRef);
+      const currentUserData = currentUserSnap.data();
+      const currentUserName = currentUserData?.fullName ?? "Unknown";
+      const currentUserRole = currentUserData?.role ?? "unknown";
+
+      let companyName = "Unknown Company";
+      if (companyId) {
+        const companyDoc = await getDoc(
+          doc(db, "insurance_company", companyId)
+        );
+        if (companyDoc.exists()) {
+          companyName = companyDoc.data()?.companyName ?? "Unknown Company";
+        }
+      }
+
+      await updateDoc(userRef, {
         companyId: null,
-        role: "civilian", // revert role if needed
+        role: "civilian",
         isVerified: false,
+        updatedAt: serverTimestamp(),
       });
+
+      await logAction({
+        userId: currentUser.uid,
+        userName: currentUserName,
+        role: currentUserRole,
+        action: "Remove Staff",
+        description: `Removed ${
+          targetUser?.fullName ?? "User"
+        } from company ${companyName}`,
+      });
+
       toast.success("Staff removed from your company.");
       if (companyId) fetchStaffList(companyId);
     } catch (error) {
@@ -130,27 +194,63 @@ export const useStaffAssignment = () => {
     }
   };
 
-  // Edit staff role
   const updateStaffRole = async (
-    userId: string,
+    targetUserId: string,
     newRole: string,
     newIsVerified: boolean
   ) => {
     try {
-      await updateDoc(doc(db, "users", userId), {
+      // Step 1: Get current logged-in user info
+      const currentUser = auth.currentUser;
+      if (!currentUser) return toast.error("Not authenticated.");
+
+      const currentUserRef = doc(db, "users", currentUser.uid);
+      const currentUserSnap = await getDoc(currentUserRef);
+      const currentUserData = currentUserSnap.data();
+      const currentUserName = currentUserData?.fullName ?? "Unknown";
+      const currentUserRole = currentUserData?.role ?? "unknown";
+
+      // Step 2: Get company name
+      let companyName = "Unknown Company";
+      if (companyId) {
+        const companyDoc = await getDoc(
+          doc(db, "insurance_company", companyId)
+        );
+        if (companyDoc.exists()) {
+          companyName = companyDoc.data()?.companyName ?? "Unknown Company";
+        }
+      }
+
+      // Step 3: Update target user
+      await updateDoc(doc(db, "users", targetUserId), {
         role: newRole,
         isVerified: newIsVerified,
         updatedAt: serverTimestamp(),
       });
+
+      // Step 4: Get updated target user info for logging
+      const targetUserSnap = await getDoc(doc(db, "users", targetUserId));
+      const targetUser = targetUserSnap.data();
+
+      // Step 5: Log the action using current user's info
+      await logAction({
+        userId: currentUser.uid,
+        userName: currentUserName,
+        role: currentUserRole,
+        action: "Update Staff Role",
+        description: `Updated role of ${
+          targetUser?.fullName ?? "user"
+        } to ${newRole} (Verified: ${newIsVerified}) in company ${companyName}`,
+      });
+
       toast.success("User updated successfully.");
-      fetchStaffList(companyId!);
+      if (companyId) fetchStaffList(companyId);
     } catch (error) {
       console.error("Update failed:", error);
       toast.error("Failed to update user.");
     }
   };
 
-  // Fetch company staff
   const fetchStaffList = async (companyId: string) => {
     try {
       const q = query(
@@ -164,6 +264,7 @@ export const useStaffAssignment = () => {
       console.error("Staff fetch error:", error);
     }
   };
+
   return {
     searchEmail,
     setSearchEmail,
