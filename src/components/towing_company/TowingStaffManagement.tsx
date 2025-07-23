@@ -13,6 +13,9 @@ import { Operator } from "../../pages/types/Company";
 import LoadingSpinner from "../ui/LoadingSpinner";
 import UserSearchModal from "./UserSearchModal";
 import { Pencil, Save, Trash2, X } from "lucide-react";
+import { doc, getDoc } from "firebase/firestore";
+import { logAction } from "../../utils/logAction";
+import { auth, db } from "../../../firebase";
 
 export default function TowingStaffManagement() {
   const { company, operators, loading, error, updateOperator, refreshData } =
@@ -32,10 +35,39 @@ export default function TowingStaffManagement() {
   const handleOperatorUpdate = async () => {
     if (!editingOperatorId) return;
     try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) throw new Error("Not authenticated");
+
+      const currentUserSnap = await getDoc(doc(db, "users", currentUser.uid));
+      const currentUserData = currentUserSnap.data();
+      const currentUserName = currentUserData?.fullName ?? "Unknown";
+      const currentUserRole = currentUserData?.role ?? "unknown";
+
+      let companyName = "Unknown Company";
+      if (company?.id) {
+        const companySnap = await getDoc(
+          doc(db, "towing_company", company.id)
+        );
+        if (companySnap.exists()) {
+          companyName = companySnap.data()?.companyName ?? "Unknown Company";
+        }
+      }
+
+      const operator = operators.find((op) => op.id === editingOperatorId);
+
       await updateOperator(editingOperatorId, editData);
       await refreshData();
       setEditingOperatorId(null);
       setEditData({});
+
+      // Log action after update
+      await logAction({
+        userId: currentUser.uid,
+        userName: currentUserName,
+        role: currentUserRole,
+        action: "Update Tow Operator",
+        description: `Updated ${operator?.fullName ?? "operator"}'s role to ${editData.role} and verification to ${editData.isVerified} in company`,
+      });
     } catch (err: any) {
       console.error("Error updating operator:", err);
       alert(err.message || "Failed to update operator. Please try again.");
@@ -90,9 +122,7 @@ export default function TowingStaffManagement() {
 
   return (
     <ComponentCard
-      title={`Manage Tow Operators${
-        company ? ` - ${company.name} (${company.region})` : ""
-      }`}
+      title={`Manage Tow Operators`}
       button={
         <button
           onClick={() => setIsSearchModalOpen(true)}
@@ -130,16 +160,7 @@ export default function TowingStaffManagement() {
           <Table className="w-full text-sm">
             <TableHeader className="bg-gray-50 dark:bg-gray-900">
               <TableRow>
-                {[
-                  "S.No",
-                  "Name",
-                  "Email",
-                  "Location",
-                  "Status",
-                  "Verified",
-                  "Role",
-                  "Actions",
-                ].map((heading) => (
+                {["S.No","Name","Email","Location","Status","Verified","Role","Actions"].map((heading) => (
                   <TableCell
                     key={heading}
                     isHeader
