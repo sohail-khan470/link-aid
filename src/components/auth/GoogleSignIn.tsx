@@ -23,15 +23,10 @@ export const GoogleSignIn = () => {
         throw new Error("No UID returned from Google sign-in");
       }
 
-      console.log("User UID:", user.uid); // Debug log
-
       const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
 
-      console.log("User exists?", userSnap.exists()); // Debug log
-
       if (!userSnap.exists()) {
-        console.log("Creating new user document"); // Debug log
         await setDoc(userRef, {
           fullName: user.displayName || "",
           email: user.email || "",
@@ -43,7 +38,6 @@ export const GoogleSignIn = () => {
           createdAt: serverTimestamp(),
           lastLogin: serverTimestamp(),
         });
-        console.log("User document created"); // Debug log
       } else {
         console.log("User document already exists"); // Debug log
       }

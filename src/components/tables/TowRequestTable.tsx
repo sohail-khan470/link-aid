@@ -1,5 +1,3 @@
-// src/components/tables/TowRequestsTable.tsx
-
 import { useState, useEffect } from "react";
 import {
   Table,
@@ -15,14 +13,14 @@ import { doc, updateDoc } from "firebase/firestore";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { db, auth } from "../../../firebase";
 import { useOperators } from "../../hooks/useOperators";
+import LoadingSpinner from "../ui/LoadingSpinner";
+import { Save, X, Pencil } from "lucide-react";
 
 export default function TowRequestsTable() {
   const { requests, loading, error, refetch } = useTowRequests();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
-
-  console.log("Requests:", requests);
 
   // Get current user from Firebase Auth
   useEffect(() => {
@@ -87,208 +85,218 @@ export default function TowRequestsTable() {
     setEditData({});
   };
 
-  if (loading)
-    return <p className="text-center text-gray-500">Loading tow requests...</p>;
-  if (error) return <p className="text-center text-red-500">{error}</p>;
-
   return (
-    <ComponentCard title="Tow Requests">
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-        <div className="max-w-full overflow-x-auto">
-          <Table>
-            <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+    <ComponentCard
+      title="Tow Requests"
+      className="shadow-xl rounded-2xl bg-white dark:bg-gray-800"
+    >
+      {loading ? (
+        <div className="p-8 flex justify-center items-center">
+          <LoadingSpinner />
+        </div>
+      ) : requests.length === 0 ? (
+        <div className="p-8 text-center text-gray-600 dark:text-gray-300 text-lg">
+          No tow requests found.
+        </div>
+      ) : (
+        <div className="relative overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+          <Table className="w-full text-sm">
+            <TableHeader className="bg-gray-50 dark:bg-gray-900">
               <TableRow>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 text-start text-theme-xs text-gray-500 dark:text-gray-400"
-                >
-                  Civilian
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 text-start text-theme-xs text-gray-500 dark:text-gray-400"
-                >
-                  Vehicle Type
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 text-start text-theme-xs text-gray-500 dark:text-gray-400"
-                >
-                  Status
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 text-start text-theme-xs text-gray-500 dark:text-gray-400"
-                >
-                  Tow Operator
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 text-start text-theme-xs text-gray-500 dark:text-gray-400"
-                >
-                  ETA (min)
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 text-start text-theme-xs text-gray-500 dark:text-gray-400"
-                >
-                  Notes
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 text-start text-theme-xs text-gray-500 dark:text-gray-400"
-                >
-                  Requested At
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 text-start text-theme-xs text-gray-500 dark:text-gray-400"
-                >
-                  Actions
-                </TableCell>
+                {[
+                  "Civilian",
+                  "Vehicle Type",
+                  "Status",
+                  "Tow Operator",
+                  "ETA (min)",
+                  "Notes",
+                  "Requested At",
+                  "Actions",
+                ].map((heading) => (
+                  <TableCell
+                    key={heading}
+                    isHeader
+                    className="px-6 py-4 text-left font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide"
+                  >
+                    {heading}
+                  </TableCell>
+                ))}
               </TableRow>
             </TableHeader>
-
-            <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-              {requests.map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell className="px-5 py-4 text-start">
-                    <div>
-                      <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                        {r.civilianName}
-                      </span>
-                      <span className="block text-gray-500 text-theme-xs dark:text-gray-400">
-                        Civilian
-                      </span>
-                    </div>
-                  </TableCell>
-
-                  <TableCell className="px-4 py-4 text-start text-theme-sm text-gray-700 dark:text-gray-300">
-                    {editingId === r.id ? (
-                      <input
-                        type="text"
-                        value={editData.vehicleType}
-                        onChange={(e) =>
-                          setEditData({
-                            ...editData,
-                            vehicleType: e.target.value,
-                          })
-                        }
-                        className="w-full px-2 py-1 border rounded text-sm"
-                      />
-                    ) : (
-                      r.vehicleType
-                    )}
-                  </TableCell>
-
-                  <TableCell className="px-4 py-4 text-start text-theme-sm text-gray-700 dark:text-gray-300">
-                    {editingId === r.id ? (
-                      <select
-                        value={editData.status}
-                        onChange={(e) =>
-                          setEditData({ ...editData, status: e.target.value })
-                        }
-                        className="px-2 py-1 border rounded text-sm"
-                      >
-                        <option value="requested">Requested</option>
-                        <option value="accepted">Accepted</option>
-                        <option value="pending">Pending</option>
-                        <option value="resolved">Resolved</option>
-                      </select>
-                    ) : (
-                      <Badge size="sm" color={getStatusColor(r.status)}>
-                        {r.status.replace("_", " ")}
-                      </Badge>
-                    )}
-                  </TableCell>
-
-                  <TableCell className="px-4 py-4 text-start text-theme-sm text-gray-700 dark:text-gray-300">
-                    {editingId === r.id ? (
-                      <OperatorDropdown
-                        value={editData.assignedOperatorId}
-                        onChange={(operatorId) =>
-                          setEditData({
-                            ...editData,
-                            assignedOperatorId: operatorId,
-                          })
-                        }
-                        companyId={currentUser?.uid}
-                      />
-                    ) : (
-                      r.operatorName
-                    )}
-                  </TableCell>
-
-                  <TableCell className="px-4 py-4 text-theme-sm text-gray-500 dark:text-gray-400">
-                    {editingId === r.id ? (
-                      <input
-                        type="number"
-                        value={editData.etaMinutes}
-                        onChange={(e) =>
-                          setEditData({
-                            ...editData,
-                            etaMinutes: e.target.value,
-                          })
-                        }
-                        className="w-20 px-2 py-1 border rounded text-sm"
-                        placeholder="ETA"
-                      />
-                    ) : (
-                      r.etaMinutes ?? "-"
-                    )}
-                  </TableCell>
-
-                  <TableCell className="px-4 py-4 text-theme-sm text-gray-500 dark:text-gray-400">
-                    {editingId === r.id ? (
-                      <textarea
-                        value={editData.notes}
-                        onChange={(e) =>
-                          setEditData({ ...editData, notes: e.target.value })
-                        }
-                        className="w-full px-2 py-1 border rounded text-sm"
-                        rows={2}
-                        placeholder="Notes"
-                      />
-                    ) : (
-                      r.notes || "-"
-                    )}
-                  </TableCell>
-
-                  <TableCell className="px-4 py-4 text-theme-sm text-gray-500 dark:text-gray-400">
-                    {r.createdAtFormatted ?? "-"}
-                  </TableCell>
-
-                  <TableCell className="px-4 py-4">
-                    {editingId === r.id ? (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleSave(r.id)}
-                          className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
-                        >
-                          Save
-                        </button>
-                        <button
-                          onClick={handleCancel}
-                          className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
-                        >
-                          Cancel
-                        </button>
+            <TableBody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {requests.map((r) => {
+                const isEditing = editingId === r.id;
+                return (
+                  <TableRow
+                    key={r.id}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150"
+                  >
+                    {/* Civilian */}
+                    <TableCell className="px-6 py-4">
+                      <div>
+                        <span className="block font-medium text-gray-900 dark:text-gray-100">
+                          {r.civilianName}
+                        </span>
+                        <span className="block text-gray-500 dark:text-gray-400 text-xs">
+                          Civilian
+                        </span>
                       </div>
-                    ) : (
-                      <button
-                        onClick={() => handleEdit(r)}
-                        className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                      >
-                        Edit
-                      </button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
+                    </TableCell>
+
+                    {/* Vehicle Type */}
+                    <TableCell className="px-6 py-4">
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          name="vehicleType"
+                          value={editData.vehicleType}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              vehicleType: e.target.value,
+                            })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      ) : (
+                        <span className="text-gray-900 dark:text-gray-100">
+                          {r.vehicleType}
+                        </span>
+                      )}
+                    </TableCell>
+
+                    {/* Status */}
+                    <TableCell className="px-6 py-4">
+                      {isEditing ? (
+                        <select
+                          name="status"
+                          value={editData.status}
+                          onChange={(e) =>
+                            setEditData({ ...editData, status: e.target.value })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="requested">Requested</option>
+                          <option value="accepted">Accepted</option>
+                          <option value="pending">Pending</option>
+                          <option value="resolved">Resolved</option>
+                        </select>
+                      ) : (
+                        <Badge color={getStatusColor(r.status)}>
+                          {r.status.replace("_", " ")}
+                        </Badge>
+                      )}
+                    </TableCell>
+
+                    {/* Tow Operator */}
+                    <TableCell className="px-6 py-4">
+                      {isEditing ? (
+                        <OperatorDropdown
+                          value={editData.assignedOperatorId}
+                          onChange={(operatorId) =>
+                            setEditData({
+                              ...editData,
+                              assignedOperatorId: operatorId,
+                            })
+                          }
+                          companyId={currentUser?.uid}
+                        />
+                      ) : (
+                        <span className="text-gray-900 dark:text-gray-100">
+                          {r.operatorName || "-"}
+                        </span>
+                      )}
+                    </TableCell>
+
+                    {/* ETA (min) */}
+                    <TableCell className="px-6 py-4">
+                      {isEditing ? (
+                        <input
+                          type="number"
+                          name="etaMinutes"
+                          value={editData.etaMinutes}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              etaMinutes: e.target.value,
+                            })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="ETA"
+                        />
+                      ) : (
+                        <span className="text-gray-900 dark:text-gray-100">
+                          {r.etaMinutes || "-"}
+                        </span>
+                      )}
+                    </TableCell>
+
+                    {/* Notes */}
+                    <TableCell className="px-6 py-4">
+                      {isEditing ? (
+                        <textarea
+                          name="notes"
+                          value={editData.notes}
+                          onChange={(e) =>
+                            setEditData({ ...editData, notes: e.target.value })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          rows={2}
+                          placeholder="Notes"
+                        />
+                      ) : (
+                        <span className="text-gray-900 dark:text-gray-100">
+                          {r.notes || "-"}
+                        </span>
+                      )}
+                    </TableCell>
+
+                    {/* Requested At */}
+                    <TableCell className="px-6 py-4">
+                      <span className="text-gray-900 dark:text-gray-100">
+                        {r.createdAtFormatted || "-"}
+                      </span>
+                    </TableCell>
+
+                    {/* Actions */}
+                    <TableCell className="px-6 py-4">
+                      {isEditing ? (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleSave(r.id)}
+                            className="text-green-600 hover:text-green-800"
+                          >
+                            <Save size={16} />
+                          </button>
+                          <button
+                            onClick={handleCancel}
+                            className="text-gray-500 hover:text-gray-700"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleEdit(r)}
+                          className="text-blue-600 hover:text-blue-800"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
-      </div>
+      )}
+
+      {error && (
+        <p className="mt-4 text-center text-red-500 dark:text-red-400 text-sm font-medium">
+          {error}
+        </p>
+      )}
     </ComponentCard>
   );
 }
@@ -306,14 +314,18 @@ function OperatorDropdown({
   const { operators, loading } = useOperators(companyId);
 
   if (loading) {
-    return <span className="text-sm text-gray-500">Loading operators...</span>;
+    return (
+      <span className="text-sm text-gray-500 dark:text-gray-400">
+        Loading operators...
+      </span>
+    );
   }
 
   return (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="px-2 py-1 border rounded text-sm min-w-32"
+      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
     >
       <option value="">Not Assigned</option>
       {operators.map((op) => (
