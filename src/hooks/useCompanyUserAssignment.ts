@@ -22,7 +22,7 @@ export const useStaffAssignment = () => {
   const [userData, setUserData] = useState<any | null>(null);
   const [staffList, setStaffList] = useState<any[]>([]);
   const [companyId, setCompanyId] = useState<string | null>(null);
-  const [companyName, setCompanyName] = useState<string>("Unknown Company");
+  const [_, setCompanyName] = useState<string>("Unknown Company");
   const [editingStaff, setEditingStaff] = useState<any | null>(null);
 
   useEffect(() => {

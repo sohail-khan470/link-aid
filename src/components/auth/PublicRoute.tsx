@@ -11,7 +11,7 @@ const PublicRoute = () => {
   const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: any) => {
       setAuthUser(firebaseUser);
 
       if (firebaseUser) {

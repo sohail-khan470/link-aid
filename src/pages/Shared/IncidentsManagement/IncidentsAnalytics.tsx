@@ -373,9 +373,6 @@ const IncidentsAnalytics = () => {
               >
                 Global Incident Map
               </h2>
-              <div style={{ height: "500px", width: "100%" }}>
-                <CountryMap mapColor="#E5E7EB" markers={incidentMarkers} />
-              </div>
             </div>
           </div>
         </div>

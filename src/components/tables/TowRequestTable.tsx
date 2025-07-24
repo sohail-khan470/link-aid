@@ -17,7 +17,7 @@ import {
   collection,
   serverTimestamp,
 } from "firebase/firestore";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 import { db, auth } from "../../../firebase";
 import { useOperators } from "../../hooks/useOperators";
 import LoadingSpinner from "../ui/LoadingSpinner";
@@ -28,8 +28,31 @@ export default function TowRequestsTable() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
+  const [role, setRole] = useState<string>("");
+  const allowedRoles = ["towing_company", "insurer"];
 
-  console.log("object", requests);
+  console.log(role);
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      const currentUser = getAuth().currentUser;
+
+      if (!currentUser?.uid) return;
+
+      const userRef = doc(db, "users", currentUser.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        const userRole = userData.role; // assuming 'role' exists
+        setRole(userRole);
+      } else {
+        console.log("No user found");
+      }
+    };
+
+    fetchUserRole();
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -113,9 +136,7 @@ export default function TowRequestsTable() {
   };
 
   return (
-    <ComponentCard
-      title="Tow Requests"
-    >
+    <ComponentCard title="Tow Requests">
       {loading ? (
         <div className="p-8 flex justify-center items-center">
           <LoadingSpinner />
@@ -137,7 +158,6 @@ export default function TowRequestsTable() {
                   "ETA (min)",
                   "Notes",
                   "Requested At",
-                  "Actions",
                 ].map((heading) => (
                   <TableCell
                     key={heading}
@@ -147,8 +167,19 @@ export default function TowRequestsTable() {
                     {heading}
                   </TableCell>
                 ))}
+
+                {/* ✅ Conditionally render the "Actions" column header */}
+                {allowedRoles.includes(role) && (
+                  <TableCell
+                    isHeader
+                    className="px-6 py-4 text-left font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide"
+                  >
+                    Actions
+                  </TableCell>
+                )}
               </TableRow>
             </TableHeader>
+
             <TableBody className="divide-y divide-gray-200 dark:divide-gray-700">
               {requests.map((r) => {
                 const isEditing = editingId === r.id;
@@ -277,31 +308,33 @@ export default function TowRequestsTable() {
                         }) || "-"}
                       </span>
                     </TableCell>
-                    <TableCell className="px-6 py-4">
-                      {isEditing ? (
-                        <div className="flex gap-2">
+                    {allowedRoles.includes(role) && (
+                      <TableCell className="px-6 py-4">
+                        {isEditing ? (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleSave(r.id)}
+                              className="text-green-600 hover:text-green-800"
+                            >
+                              <Save size={16} />
+                            </button>
+                            <button
+                              onClick={handleCancel}
+                              className="text-gray-500 hover:text-gray-700"
+                            >
+                              <X size={16} />
+                            </button>
+                          </div>
+                        ) : (
                           <button
-                            onClick={() => handleSave(r.id)}
-                            className="text-green-600 hover:text-green-800"
+                            onClick={() => handleEdit(r)}
+                            className="text-blue-600 hover:text-blue-800"
                           >
-                            <Save size={16} />
+                            <Pencil size={16} />
                           </button>
-                          <button
-                            onClick={handleCancel}
-                            className="text-gray-500 hover:text-gray-700"
-                          >
-                            <X size={16} />
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => handleEdit(r)}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          <Pencil size={16} />
-                        </button>
-                      )}
-                    </TableCell>
+                        )}
+                      </TableCell>
+                    )}
                   </TableRow>
                 );
               })}
