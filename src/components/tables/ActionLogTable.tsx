@@ -8,12 +8,16 @@ import {
 import Badge from "../../components/ui/badge/Badge";
 import ComponentCard from "../common/ComponentCard";
 import { useActionsLog } from "../../hooks/useActionsLogs";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function ActionsLogTable() {
   const { logs, loading, error } = useActionsLog();
   const [currentPage, setCurrentPage] = useState(1);
+  const [roleFilter, setRoleFilter] = useState("");
+  const [userFilter, setUserFilter] = useState("");
+  const [actionFilter, setActionFilter] = useState("");
+
   const itemsPerPage = 10;
 
   const getRoleColor = (role: string) => {
@@ -33,25 +37,71 @@ export default function ActionsLogTable() {
     }
   };
 
-  // Pagination logic
-  const totalPages = Math.ceil(logs.length / itemsPerPage);
-  const paginatedLogs = logs.slice(
+  const filteredLogs = useMemo(() => {
+    return logs.filter((log) => {
+      const matchesRole = roleFilter ? log.role === roleFilter : true;
+      const matchesUser = userFilter
+        ? log.userName?.toLowerCase().includes(userFilter.toLowerCase())
+        : true;
+      const matchesAction = actionFilter
+        ? log.action?.toLowerCase().includes(actionFilter.toLowerCase())
+        : true;
+
+      return matchesRole && matchesUser && matchesAction;
+    });
+  }, [logs, roleFilter, userFilter, actionFilter]);
+
+  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
+  const paginatedLogs = filteredLogs.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  const handlePrevPage = () => {
-    setCurrentPage((prev) => Math.max(prev - 1, 1));
-  };
-
-  const handleNextPage = () => {
+  const handlePrevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
+  const handleNextPage = () =>
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-  };
 
   return (
-    <ComponentCard title="Activity Log (Actions)">
+    <ComponentCard title="Action Logs List">
+      {/* 🔎 Filters */}
+      <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+        <input
+          type="text"
+          placeholder="Search by user name"
+          className="border rounded px-3 py-2 text-sm dark:bg-gray-800 dark:text-white"
+          value={userFilter}
+          onChange={(e) => setUserFilter(e.target.value)}
+        />
+
+        <select
+          className="border rounded px-3 py-2 text-sm dark:bg-gray-800 dark:text-white"
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value)}
+        >
+          <option value="">All Roles</option>
+          <option value="insurer">Insurer</option>
+          <option value="towing_company">Towing Company</option>
+          <option value="responder">Responder</option>
+          <option value="civilian">Civilian</option>
+        </select>
+
+        <select
+          className="border rounded px-3 py-2 text-sm dark:bg-gray-800 dark:text-white"
+          value={actionFilter}
+          onChange={(e) => setActionFilter(e.target.value)}
+        >
+          <option value="">All Actions</option>
+          {[...new Set(logs.map((log) => log.action))].map((action) => (
+            <option key={action} value={action}>
+              {action}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* 🔄 Table Rendering */}
       {loading ? (
-        <p className="text-center py-6 text-gray-500 dark:text-gray-400">
+        <p className="text-center py-6 text-gray-500 dark:text-gray-300">
           Loading logs...
         </p>
       ) : error ? (
@@ -64,32 +114,32 @@ export default function ActionsLogTable() {
                 <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                   <TableRow>
                     <TableCell
+                      className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300 text-start"
                       isHeader
-                      className="px-5 py-3 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400"
                     >
                       User
                     </TableCell>
                     <TableCell
+                      className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300 text-start"
                       isHeader
-                      className="px-5 py-3 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400"
                     >
                       Role
                     </TableCell>
                     <TableCell
+                      className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300 text-start"
                       isHeader
-                      className="px-5 py-3 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400"
                     >
                       Action
                     </TableCell>
                     <TableCell
+                      className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300 text-start"
                       isHeader
-                      className="px-5 py-3 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400"
                     >
                       Description
                     </TableCell>
                     <TableCell
+                      className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300 text-start"
                       isHeader
-                      className="px-5 py-3 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400"
                     >
                       Time
                     </TableCell>
@@ -106,7 +156,7 @@ export default function ActionsLogTable() {
                       </TableCell>
                       <TableCell className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300">
                         <Badge size="sm" color={getRoleColor(log.role)}>
-                          {log.role || "Unknown"}
+                          {log.role}
                         </Badge>
                       </TableCell>
                       <TableCell className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300">
@@ -116,7 +166,7 @@ export default function ActionsLogTable() {
                         {log.description || "-"}
                       </TableCell>
                       <TableCell className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300">
-                        {log.timestamp.toDate().toLocaleString() || "N/A"}
+                        {log.timestamp.toDate().toLocaleString()}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -125,7 +175,7 @@ export default function ActionsLogTable() {
             </div>
           </div>
 
-          {/* Pagination Controls */}
+          {/* Pagination */}
           <div className="flex items-center justify-between mt-4 px-2">
             <button
               onClick={handlePrevPage}
