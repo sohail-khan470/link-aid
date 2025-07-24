@@ -33,6 +33,7 @@ export default function TowRequestsTable() {
 
   console.log(role);
 
+
   useEffect(() => {
     const fetchUserRole = async () => {
       const currentUser = getAuth().currentUser;

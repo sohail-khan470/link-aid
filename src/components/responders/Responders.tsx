@@ -13,6 +13,7 @@ import Label from "../form/Label";
 import { useResponders } from "../../hooks/useResponders";
 import ComponentCard from "../common/ComponentCard";
 import LoadingSpinner from "../ui/LoadingSpinner";
+import { Modal } from "../ui/modal";
 
 interface Responder {
   id: string;
@@ -206,95 +207,91 @@ export default function Responders() {
           </div>
         )}
       </ComponentCard>
-
-      {showForm && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4 bg-black/40 backdrop-blur-sm">
-          <div className="relative w-full max-w-md">
-            <div className="overflow-hidden rounded-2xl shadow-2xl bg-white dark:bg-gray-800 transition-all duration-300 scale-100">
-              <ComponentCard
-                title={currentResponder ? "Edit Responder" : "Add Responder"}
-                button={
-                  <button
-                    onClick={() => setShowForm(false)}
-                    className="text-sm text-blue-500 hover:underline"
-                  >
-                    Cancel
-                  </button>
-                }
-              >
-                <form onSubmit={handleFormSubmit} className="space-y-6">
-                  <div>
-                    <Label htmlFor="fullName">Full Name</Label>
-                    <Input
-                      type="text"
-                      id="fullName"
-                      name="fullName"
-                      placeholder="Responder 1"
-                      value={formData.fullName}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="isVerified">Verified</Label>
-                    <Input
-                      type="checkbox"
-                      id="isVerified"
-                      name="isVerified"
-                      checked={formData.isVerified}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="language">Language</Label>
-                    <select
-                      id="language"
-                      name="language"
-                      value={formData.language}
-                      onChange={handleLanguageChange}
-                      className="w-full p-2 border rounded"
-                    >
-                      <option value="en">English</option>
-                      <option value="sv">Swedish</option>
-                    </select>
-                  </div>
-                  <div>
-                    <Label htmlFor="location">Location</Label>
-                    <Input
-                      type="text"
-                      id="location"
-                      name="location"
-                      placeholder="34.8774° N, 22.6665° E"
-                      value={formData.location || ""}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="phone">Phone</Label>
-                    <Input
-                      type="text"
-                      id="phone"
-                      name="phone"
-                      placeholder="+3866271662"
-                      value={formData.phone || ""}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div>
-                    <button
-                      type="submit"
-                      className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-                    >
-                      {currentResponder
-                        ? "Update Responder"
-                        : "Create Responder"}
-                    </button>
-                  </div>
-                </form>
-              </ComponentCard>
-            </div>
+<Modal isOpen={showForm} onClose={() => setShowForm(false)}>
+  <div className="relative w-full">
+    <div className="overflow-hidden rounded-2xl shadow-2xl bg-white dark:bg-gray-800 transition-all duration-300 scale-100">
+      <ComponentCard
+        title={currentResponder ? "Edit Responder" : "Add Responder"}
+        button={
+          <button
+            onClick={() => setShowForm(false)}
+            className="text-sm text-blue-500 hover:underline"
+          >
+            Cancel
+          </button>
+        }
+      >
+        <form onSubmit={handleFormSubmit} className="space-y-6">
+          <div>
+            <Label htmlFor="fullName">Full Name</Label>
+            <Input
+              type="text"
+              id="fullName"
+              name="fullName"
+              placeholder="Responder 1"
+              value={formData.fullName}
+              onChange={handleInputChange}
+            />
           </div>
-        </div>
-      )}
+          <div>
+            <Label htmlFor="isVerified">Verified</Label>
+            <Input
+              type="checkbox"
+              id="isVerified"
+              name="isVerified"
+              checked={formData.isVerified}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div>
+            <Label htmlFor="language">Language</Label>
+            <select
+              id="language"
+              name="language"
+              value={formData.language}
+              onChange={handleLanguageChange}
+              className="w-full p-2 border rounded"
+            >
+              <option value="en">English</option>
+              <option value="sv">Swedish</option>
+            </select>
+          </div>
+          <div>
+            <Label htmlFor="location">Location</Label>
+            <Input
+              type="text"
+              id="location"
+              name="location"
+              placeholder="34.8774° N, 22.6665° E"
+              value={formData.location || ""}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div>
+            <Label htmlFor="phone">Phone</Label>
+            <Input
+              type="text"
+              id="phone"
+              name="phone"
+              placeholder="+3866271662"
+              value={formData.phone || ""}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div>
+            <button
+              type="submit"
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            >
+              {currentResponder ? "Update Responder" : "Create Responder"}
+            </button>
+          </div>
+        </form>
+      </ComponentCard>
+    </div>
+  </div>
+</Modal>
+
     </>
   );
 }
