@@ -16,6 +16,7 @@ import { Pencil, Save, Trash2, X } from "lucide-react";
 import { doc, getDoc } from "firebase/firestore";
 import { logAction } from "../../utils/logAction";
 import { auth, db } from "../../../firebase";
+import { Modal } from "../ui/modal";
 
 export default function TowingStaffManagement() {
   const { company, operators, loading, error, updateOperator, refreshData } =
@@ -45,9 +46,7 @@ export default function TowingStaffManagement() {
 
       let companyName = "Unknown Company";
       if (company?.id) {
-        const companySnap = await getDoc(
-          doc(db, "towing_company", company.id)
-        );
+        const companySnap = await getDoc(doc(db, "towing_company", company.id));
         if (companySnap.exists()) {
           companyName = companySnap.data()?.companyName ?? "Unknown Company";
         }
@@ -66,7 +65,9 @@ export default function TowingStaffManagement() {
         userName: currentUserName,
         role: currentUserRole,
         action: "Update Tow Operator",
-        description: `Updated ${operator?.fullName ?? "operator"}'s role to ${editData.role} and verification to ${editData.isVerified} in company`,
+        description: `Updated ${operator?.fullName ?? "operator"}'s role to ${
+          editData.role
+        } and verification to ${editData.isVerified} in company`,
       });
     } catch (err: any) {
       console.error("Error updating operator:", err);
@@ -160,7 +161,16 @@ export default function TowingStaffManagement() {
           <Table className="w-full text-sm">
             <TableHeader className="bg-gray-50 dark:bg-gray-900">
               <TableRow>
-                {["S.No","Name","Email","Location","Status","Verified","Role","Actions"].map((heading) => (
+                {[
+                  "S.No",
+                  "Name",
+                  "Email",
+                  "Location",
+                  "Status",
+                  "Verified",
+                  "Role",
+                  "Actions",
+                ].map((heading) => (
                   <TableCell
                     key={heading}
                     isHeader
@@ -356,13 +366,17 @@ export default function TowingStaffManagement() {
           {error}
         </p>
       )}
-
-      <UserSearchModal
+      <Modal
         isOpen={isSearchModalOpen}
         onClose={() => setIsSearchModalOpen(false)}
-        company={company}
-        onUserAssigned={handleUserAssigned}
-      />
+      >
+        <UserSearchModal
+          isOpen
+          company={company}
+          onUserAssigned={handleUserAssigned}
+          onClose={() => setIsSearchModalOpen(false)}
+        />
+      </Modal>
     </ComponentCard>
   );
 }

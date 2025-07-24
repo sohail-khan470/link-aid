@@ -13,6 +13,7 @@ import useTowingCompanyManagement from "../../hooks/useTowingCompanyManagement";
 import { confirm } from "../../utils/confirm";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
+import { Modal } from "../ui/modal";
 
 export default function TowingCompanyManagement() {
   const {
@@ -186,10 +187,10 @@ export default function TowingCompanyManagement() {
         )}
       </ComponentCard>
 
-      {/* Modal */}
+      {/* Portal-based Modal */}
       {showForm && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4 bg-black/40 backdrop-blur-sm">
-          <div className="relative w-full max-w-md">
+        <Modal isOpen onClose={() => setShowForm(false)}>
+          <div className="relative w-full">
             <div className="overflow-hidden rounded-2xl shadow-2xl bg-white dark:bg-gray-800 transition-all duration-300 scale-100">
               <ComponentCard
                 title={
@@ -215,7 +216,6 @@ export default function TowingCompanyManagement() {
                       placeholder="e.g., Fast Tow Inc."
                     />
                   </div>
-
                   <div>
                     <Label htmlFor="email">Email</Label>
                     <Input
@@ -227,7 +227,6 @@ export default function TowingCompanyManagement() {
                       placeholder="example@fasttow.com"
                     />
                   </div>
-
                   <div>
                     <Label htmlFor="phoneNumber">Phone Number</Label>
                     <Input
@@ -238,7 +237,6 @@ export default function TowingCompanyManagement() {
                       placeholder="+1 123 456 7890"
                     />
                   </div>
-
                   <div>
                     <Label htmlFor="address">Address</Label>
                     <Input
@@ -249,7 +247,6 @@ export default function TowingCompanyManagement() {
                       placeholder="123 Main St, City"
                     />
                   </div>
-
                   <div>
                     <Label htmlFor="region">Region</Label>
                     <Input
@@ -260,7 +257,6 @@ export default function TowingCompanyManagement() {
                       placeholder="East Region"
                     />
                   </div>
-
                   <div>
                     <button
                       type="submit"
@@ -280,7 +276,7 @@ export default function TowingCompanyManagement() {
               </ComponentCard>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
     </>
   );

@@ -44,7 +44,13 @@ export default function CompanyDashboard() {
     fetchUserRole();
   }, []);
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+        <LoadingSpinner />
+      </div>
+    );
+  }
 
   if (role === "towing_company") return <TowingCompanyDashboard />;
   if (role === "insurer") return <InsuranceCompanyDashboard />;

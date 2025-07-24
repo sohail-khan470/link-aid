@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   collection,
   query,
@@ -41,6 +41,27 @@ export default function UserSearchModal({
   );
   const [isAssigning, setIsAssigning] = useState(false);
 
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(event.target as Node)
+      ) {
+        handleClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+
   const handleSearch = async () => {
     if (!searchEmail.trim()) {
       alert("Please enter an email to search");
@@ -56,7 +77,7 @@ export default function UserSearchModal({
       const userQuery = query(
         usersRef,
         where("email", "==", searchEmail.trim()),
-        where("role", "==", "civilian") // ✅ Enforce civilian role
+        where("role", "==", "civilian")
       );
       const userSnapshot = await getDocs(userQuery);
 
@@ -87,27 +108,17 @@ export default function UserSearchModal({
         role: selectedRole,
       };
 
-      // If assigning tow_operator role, add companyId
       if (selectedRole === "tow_operator") {
         updateData.companyId = company.id;
       } else {
-        // If assigning civilian role, remove companyId
         updateData.companyId = "";
       }
 
       const userRef = doc(db, "users", searchResult.id);
       await updateDoc(userRef, updateData);
 
-      console.log(`User ${searchResult.email} assigned role: ${selectedRole}`);
-
-      // Refresh the parent component data
       await onUserAssigned();
-
-      // Reset form
-      setSearchEmail("");
-      setSearchResult(null);
-      setNotFound(false);
-      setSelectedRole("tow_operator");
+      resetSearch();
     } catch (error) {
       console.error("Error assigning role:", error);
       alert("Failed to assign role. Please try again.");
@@ -131,22 +142,19 @@ export default function UserSearchModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Search & Assign User</h2>
-          <button
-            onClick={handleClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl"
-          >
-            ×
-          </button>
-        </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-transparent px-4">
+      <div
+        ref={modalRef}
+        className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full"
+      >
+        <h2 className="text-xl font-semibold mb-4 text-center dark:text-white">
+          Search & Assign User
+        </h2>
 
         <div className="space-y-4">
-          {/* Search Section */}
+          {/* Search Input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-400">
               Search by Email
             </label>
             <div className="flex space-x-2">
@@ -155,7 +163,7 @@ export default function UserSearchModal({
                 placeholder="Enter user email"
                 value={searchEmail}
                 onChange={(e) => setSearchEmail(e.target.value)}
-                className="flex-1 border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-400"
                 disabled={isSearching}
               />
               <button
@@ -168,13 +176,14 @@ export default function UserSearchModal({
             </div>
           </div>
 
-          {/* Search Results Section */}
+          {/* Spinner */}
           {isSearching && (
             <div className="flex justify-center py-4">
               <LoadingSpinner />
             </div>
           )}
 
+          {/* Not Found */}
           {notFound && (
             <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-red-600 text-center">
@@ -183,10 +192,13 @@ export default function UserSearchModal({
             </div>
           )}
 
+          {/* User Result */}
           {searchResult && (
-            <div className="p-4 bg-green-50 border border-green-200 rounded-lg space-y-3">
-              <h3 className="font-medium text-gray-900">User Found:</h3>
-              <div className="space-y-1 text-sm">
+            <div className="p-4 bg-green-50 dark:bg-gray-900 border border-green-200 dark:border-gray-950 rounded-lg space-y-3">
+              <h3 className="font-medium text-gray-900 dark:text-gray-400">
+                User Found
+              </h3>
+              <div className="space-y-1 text-sm  dark:text-gray-400">
                 <p>
                   <strong>Email:</strong> {searchResult.email}
                 </p>
@@ -203,9 +215,8 @@ export default function UserSearchModal({
                 )}
               </div>
 
-              {/* Role Assignment */}
-              <div className="pt-2 border-t border-green-200">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+              <div className="pt-2 border-green-200">
+                <label className="block text-sm font-medium text-gray-700 mb-1  dark:text-gray-400">
                   Assign Role
                 </label>
                 <select
@@ -215,7 +226,7 @@ export default function UserSearchModal({
                       e.target.value as "tow_operator" | "civilian"
                     )
                   }
-                  className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-blue-500 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500  dark:text-gray-400   dark:bg-gray-900"
                 >
                   <option value="tow_operator">Tow Operator</option>
                   <option value="civilian">Civilian</option>
@@ -242,8 +253,8 @@ export default function UserSearchModal({
             </div>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex gap-2 pt-4 border-t">
+          {/* Footer */}
+          <div className="flex gap-2 pt-4">
             <button
               onClick={resetSearch}
               className="flex-1 bg-gray-300 text-gray-700 rounded py-2 hover:bg-gray-400 transition-colors"

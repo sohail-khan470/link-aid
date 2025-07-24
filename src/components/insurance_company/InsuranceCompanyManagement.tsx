@@ -14,6 +14,7 @@ import { useInsuranceCompany } from "../../hooks/useInsuranceCompany";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import { Timestamp } from "firebase/firestore";
+import { Modal } from "../ui/modal";
 
 interface Company {
   id: string;
@@ -185,84 +186,80 @@ export default function InsuranceCompanyManagement() {
         )}
       </ComponentCard>
 
-      {showForm && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4 bg-black/40 backdrop-blur-sm">
-          <div className="relative w-full max-w-md">
-            {/* Modal content card */}
-            <div className="overflow-hidden rounded-2xl shadow-2xl bg-white dark:bg-gray-800 transition-all duration-300 scale-100">
-              <ComponentCard
-                title={
-                  currentCompany
-                    ? "Edit Insurance Company"
-                    : "Add Insurance Company"
-                }
-                button={
-                  <button
-                    onClick={() => setShowForm(false)}
-                    className="text-sm text-blue-500 hover:underline"
-                  >
-                    Cancel
-                  </button>
-                }
-              >
-                <form onSubmit={handleFormSubmit} className="space-y-6">
-                  <div>
-                    <Label htmlFor="companyName">Company Name</Label>
-                    <Input
-                      type="text"
-                      id="companyName"
-                      name="companyName"
-                      placeholder="ABC Insurance Ltd."
-                      value={formData.companyName}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="contactEmail">Contact Email</Label>
-                    <Input
-                      type="email"
-                      id="contactEmail"
-                      name="contactEmail"
-                      placeholder="contact@abcinsurance.com"
-                      value={formData.contactEmail}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="region">Region</Label>
-                    <Input
-                      type="text"
-                      id="region"
-                      name="region"
-                      placeholder="North Region"
-                      value={formData.region}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-
-                  <div>
-                    <button
-                      type="submit"
-                      disabled={formLoading}
-                      className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-                    >
-                      {formLoading
-                        ? currentCompany
-                          ? "Updating..."
-                          : "Creating..."
-                        : currentCompany
-                        ? "Update Company"
-                        : "Create Company"}
-                    </button>
-                  </div>
-                </form>
-              </ComponentCard>
-            </div>
+     <Modal  isOpen={showForm} onClose={() => setShowForm(false)}>
+  <div className="relative w-full">
+    <div className="overflow-hidden rounded-2xl shadow-2xl bg-white dark:bg-gray-800 transition-all duration-300 scale-100">
+      <ComponentCard
+        title={
+          currentCompany ? "Edit Insurance Company" : "Add Insurance Company"
+        }
+        button={
+          <button
+            onClick={() => setShowForm(false)}
+            className="text-sm text-blue-500 hover:underline"
+          >
+            Cancel
+          </button>
+        }
+      >
+        <form onSubmit={handleFormSubmit} className="space-y-6">
+          <div>
+            <Label htmlFor="companyName">Company Name</Label>
+            <Input
+              type="text"
+              id="companyName"
+              name="companyName"
+              placeholder="ABC Insurance Ltd."
+              value={formData.companyName}
+              onChange={handleInputChange}
+            />
           </div>
-        </div>
-      )}
+
+          <div>
+            <Label htmlFor="contactEmail">Contact Email</Label>
+            <Input
+              type="email"
+              id="contactEmail"
+              name="contactEmail"
+              placeholder="contact@abcinsurance.com"
+              value={formData.contactEmail}
+              onChange={handleInputChange}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="region">Region</Label>
+            <Input
+              type="text"
+              id="region"
+              name="region"
+              placeholder="North Region"
+              value={formData.region}
+              onChange={handleInputChange}
+            />
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              disabled={formLoading}
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            >
+              {formLoading
+                ? currentCompany
+                  ? "Updating..."
+                  : "Creating..."
+                : currentCompany
+                ? "Update Company"
+                : "Create Company"}
+            </button>
+          </div>
+        </form>
+      </ComponentCard>
+    </div>
+  </div>
+</Modal>
+
     </>
   );
 }
