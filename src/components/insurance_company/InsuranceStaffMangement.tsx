@@ -11,7 +11,7 @@ import {
 import { Pencil, Save, Trash, X } from "lucide-react";
 import Badge from "../ui/badge/Badge";
 import LoadingSpinner from "../ui/LoadingSpinner";
-import Swal from "sweetalert2";
+import CustomAlert from "../ui/alert/CustomAlert";
 
 export default function InsuranceStaffManagement() {
   const {
@@ -30,6 +30,11 @@ export default function InsuranceStaffManagement() {
   const [editRowId, setEditRowId] = useState<string | null>(null);
   const [editRole, setEditRole] = useState<string>("driver");
   const [editVerified, setEditVerified] = useState<boolean>(false);
+
+  // 🔔 Alert state
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [successOpen, setSuccessOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   return (
     <ComponentCard
@@ -54,7 +59,6 @@ export default function InsuranceStaffManagement() {
       }
     >
       <div className="p-4">
-        {/* 👤 Found User Details */}
         {userData && (
           <div className="border rounded-xl bg-white dark:bg-white/5 dark:border-white/10 p-6 mb-6 shadow-sm transition-all">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
@@ -168,23 +172,19 @@ export default function InsuranceStaffManagement() {
                         {staff.fullName}
                       </TableCell>
 
-                      {/* Role column (editable) */}
                       <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
                         {editRowId === staff.id ? (
                           <select
-                            className="border p-1 rounded  dark:border-gray-600"
+                            className="border p-1 rounded dark:border-gray-600"
                             value={editRole}
                             onChange={(e) => setEditRole(e.target.value)}
                           >
-                            <option
-                              value="driver"
-                              className="dark:bg-gray-800 "
-                            >
+                            <option value="driver" className="dark:bg-gray-800">
                               Driver
                             </option>
                             <option
                               value="dispatcher"
-                              className="dark:bg-gray-800 "
+                              className="dark:bg-gray-800"
                             >
                               Dispatcher
                             </option>
@@ -194,12 +194,10 @@ export default function InsuranceStaffManagement() {
                         )}
                       </TableCell>
 
-                      {/* Verified */}
-
                       <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
                         {editRowId === staff.id ? (
                           <select
-                            className="border p-1 rounded  dark:border-gray-600"
+                            className="border p-1 rounded dark:border-gray-600"
                             value={editVerified ? "true" : "false"}
                             onChange={(e) =>
                               setEditVerified(e.target.value === "true")
@@ -221,19 +219,16 @@ export default function InsuranceStaffManagement() {
                         )}
                       </TableCell>
 
-                      {/* Email */}
                       <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
                         {staff.email}
                       </TableCell>
 
-                      {/* CreatedAt */}
                       <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
                         {staff.createdAt?.toDate
                           ? staff.createdAt.toDate().toLocaleDateString()
                           : "N/A"}
                       </TableCell>
 
-                      {/* UpdatedAt */}
                       <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
                         {staff.updatedAt?.toDate
                           ? staff.updatedAt.toDate().toLocaleString("en-GB", {
@@ -242,17 +237,15 @@ export default function InsuranceStaffManagement() {
                               year: "numeric",
                               hour: "2-digit",
                               minute: "2-digit",
-                              hour12: true, // 24-hour format
+                              hour12: true,
                             })
                           : staff.createdAt}
                       </TableCell>
 
-                      {/* Actions */}
                       <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
                         <div className="flex gap-3 items-center">
                           {editRowId === staff.id ? (
                             <>
-                              {/* ✅ Save */}
                               <button
                                 title="Save"
                                 onClick={() => {
@@ -268,7 +261,6 @@ export default function InsuranceStaffManagement() {
                                 <Save size={16} />
                               </button>
 
-                              {/* Cancel */}
                               <button
                                 title="Cancel"
                                 onClick={() => setEditRowId(null)}
@@ -279,7 +271,6 @@ export default function InsuranceStaffManagement() {
                             </>
                           ) : (
                             <>
-                              {/* Edit */}
                               <button
                                 onClick={() => {
                                   setEditRowId(staff.id);
@@ -294,27 +285,10 @@ export default function InsuranceStaffManagement() {
                             </>
                           )}
 
-                          {/* Delete */}
                           <button
                             onClick={() => {
-                              Swal.fire({
-                                title: "Are you sure?",
-                                text: "You won't be able to revert this!",
-                                icon: "warning",
-                                showCancelButton: true,
-                                confirmButtonColor: "#3085d6",
-                                cancelButtonColor: "#d33",
-                                confirmButtonText: "Yes, delete it!",
-                              }).then((result) => {
-                                if (result.isConfirmed) {
-                                  deleteStaff(staff.id);
-                                  Swal.fire(
-                                    "Deleted!",
-                                    "User has been removed.",
-                                    "success"
-                                  );
-                                }
-                              });
+                              setDeleteTargetId(staff.id);
+                              setAlertOpen(true);
                             }}
                             className="text-red-500 hover:text-red-700"
                             title="Delete"
@@ -331,6 +305,34 @@ export default function InsuranceStaffManagement() {
           </div>
         </div>
       </div>
+
+      {/* 🔔 Confirm Delete Modal */}
+      <CustomAlert
+        isOpen={alertOpen}
+        title="Are you sure?"
+        text="You won't be able to revert this!"
+        icon="warning"
+        confirmText="Yes, delete it!"
+        cancelText="Cancel"
+        showCancel
+        onConfirm={() => {
+          if (deleteTargetId) deleteStaff(deleteTargetId);
+          setAlertOpen(false);
+          setSuccessOpen(true);
+        }}
+        onCancel={() => setAlertOpen(false)}
+      />
+
+      {/* ✅ Deleted Success Modal */}
+      <CustomAlert
+        isOpen={successOpen}
+        title="Deleted!"
+        text="User has been removed."
+        icon="success"
+        confirmText="OK"
+        showCancel={false}
+        onConfirm={() => setSuccessOpen(false)}
+      />
     </ComponentCard>
   );
 }

@@ -52,7 +52,9 @@ export function useTowRequests() {
           userName: currentUserData?.fullName ?? "Unknown",
           role: currentUserRole,
           action: "View Tow Requests",
-          description: `${currentUserData?.fullName ?? "User"} viewed tow requests list`,
+          description: `${
+            currentUserData?.fullName ?? "User"
+          } viewed tow requests list`,
         });
       }
 
@@ -60,8 +62,6 @@ export function useTowRequests() {
       const data = await Promise.all(
         snapshot.docs.map(async (docSnap) => {
           const tow = docSnap.data();
-
-          console.log("--------------", tow);
 
           // 👤 Get civilian/responder info
           const userSnap = await getDoc(doc(db, "users", tow.userId));
@@ -80,7 +80,9 @@ export function useTowRequests() {
           // 👷 Get matched operator info
           let operatorName = "Not Assigned";
           if (tow.matchedOperatorId) {
-            const opSnap = await getDoc(doc(db, "users", tow.matchedOperatorId));
+            const opSnap = await getDoc(
+              doc(db, "users", tow.matchedOperatorId)
+            );
             if (opSnap.exists()) {
               const opData = opSnap.data();
               operatorName = opData?.fullName || "Unknown";

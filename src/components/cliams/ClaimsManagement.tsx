@@ -12,7 +12,6 @@ import LoadingSpinner from "../ui/LoadingSpinner";
 
 export default function ClaimsManagement() {
   const { claims, loading, error } = useClaims();
-  console.log("claims", claims);
 
   return (
     <ComponentCard title="Claims List">

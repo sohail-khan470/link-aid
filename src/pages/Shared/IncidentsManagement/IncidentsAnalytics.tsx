@@ -16,7 +16,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import PageMeta from "../../../components/common/PageMeta";
-import CountryMap from "../../../components/ecommerce/CountryMap";
 
 interface Incident {
   id: string;
@@ -114,12 +113,6 @@ const IncidentsAnalytics = () => {
     return hours;
   };
 
-  const incidentMarkers = incidents
-    .filter((i) => i.location?.lat && i.location?.lng)
-    .map((incident) => ({
-      latLng: [incident.location?.lat, incident.location?.lng],
-      name: incident.vehicle || "Unknown vehicle",
-    }));
 
   // Get recent incidents
   const getRecentIncidents = (limit = 10) => {
