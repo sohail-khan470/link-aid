@@ -27,6 +27,18 @@ interface Claim {
   submittedAt: Timestamp;
 }
 
+type BadgeColor =
+  | "primary"
+  | "success"
+  | "error"
+  | "warning"
+  | "info"
+  | "light"
+  | "dark"
+  | "secondary"
+  | "danger"
+  | "gray"; // custom fallback color
+
 export default function RecentClaims() {
   const [claims, setClaims] = useState<Claim[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,18 +68,18 @@ export default function RecentClaims() {
     fetchClaims();
   }, []);
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string): BadgeColor => {
     switch (status) {
-      case "submitted":
+      case "pending":
         return "warning";
-      case "assigned":
+      case "in_progress":
         return "info";
       case "resolved":
         return "success";
       case "rejected":
         return "error";
       default:
-        return undefined;
+        return "gray"; // defined fallback in your BadgeProps
     }
   };
 

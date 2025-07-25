@@ -19,12 +19,15 @@ import PageMeta from "../../../components/common/PageMeta";
 
 interface Incident {
   id: string;
-  vehicle?: string;
-  timestamp: Timestamp | Date;
   location?: {
     lat: number;
     lng: number;
   };
+  aiSuggestion?: {
+    damageType: string;
+    estimatedCost: string;
+  };
+
   // Add other incident properties as needed
 }
 
