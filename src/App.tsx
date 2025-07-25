@@ -17,7 +17,6 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 // Pages
 import SignIn from "./pages/Shared/AuthPages/SignIn";
-import SignUp from "./pages/Shared/AuthPages/SignUp";
 import NotFound from "./pages/OtherPage/NotFound";
 import Unauthorized from "./pages/Shared/Unauthourised/Unauthorised";
 import HomeRedirect from "./pages/Shared/HomeRedirect";
@@ -88,7 +87,6 @@ export default function App() {
         <Route path="/" element={<HomeRedirect />} />
         <Route element={<PublicRoute />}>
           <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
         </Route>
 
         {/* Protected Routes */}

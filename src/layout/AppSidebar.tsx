@@ -129,7 +129,6 @@ const othersItems: NavItem[] = [
     name: "Authentication",
     subItems: [
       { name: "Sign In", path: "/signin" },
-      { name: "Sign Up", path: "/signup" },
     ],
   },
 ];
