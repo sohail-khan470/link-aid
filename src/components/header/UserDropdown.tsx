@@ -1,15 +1,17 @@
-
 import { useState } from "react";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { getAuth, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 import { useProfile } from "../../hooks/useProfile";
+import CustomAlert from "../ui/alert/CustomAlert";
 
-export default function profileDropdown() {
+export default function ProfileDropdown() {
   const [isOpen, setIsOpen] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [errorAlertOpen, setErrorAlertOpen] = useState(false);
+
   const { profile, loading } = useProfile();
   const navigate = useNavigate();
 
@@ -20,36 +22,23 @@ export default function profileDropdown() {
   function closeDropdown() {
     setIsOpen(false);
   }
-  if (loading) return null; // Handle loading state
 
-  //  Sign-out logic
-  const handleSignOut = async () => {
-    const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "You will be signed out from your account!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, sign out!",
-    });
-
-    if (result.isConfirmed) {
-      try {
-        const auth = getAuth();
-        await signOut(auth);
-        navigate("/signin",{ replace: true });
-        toast.success("Signed out successfully!");
-      } catch (error) {
-        console.error("Sign out error:", error);
-        Swal.fire({
-          title: "Error!",
-          text: "Something went wrong while signing out.",
-          icon: "error",
-        });
-      }
+  // Sign-out logic with Custom Alert
+  const handleSignOutConfirm = async () => {
+    setAlertOpen(false);
+    try {
+      const auth = getAuth();
+      await signOut(auth);
+      navigate("/signin", { replace: true });
+      toast.success("Signed out successfully!");
+    } catch (error) {
+      console.error("Sign out error:", error);
+      setErrorAlertOpen(true);
     }
   };
+
+  if (loading) return null;
+
   return (
     <div className="relative">
       <button
@@ -61,9 +50,10 @@ export default function profileDropdown() {
         </span>
 
         <span className="block mr-1 font-medium text-theme-sm">
-          {" "}
           {profile?.fullName || "Unknown"}
         </span>
+
+        {/* Chevron Icon */}
         <svg
           className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${
             isOpen ? "rotate-180" : ""
@@ -72,7 +62,6 @@ export default function profileDropdown() {
           height="20"
           viewBox="0 0 18 20"
           fill="none"
-          xmlns="http://www.w3.org/2000/svg"
         >
           <path
             d="M4.3125 8.65625L9 13.3437L13.6875 8.65625"
@@ -83,6 +72,7 @@ export default function profileDropdown() {
           />
         </svg>
       </button>
+
       <Dropdown
         isOpen={isOpen}
         onClose={closeDropdown}
@@ -100,6 +90,7 @@ export default function profileDropdown() {
           </span>
         </div>
 
+        {/* Profile Links */}
         <ul className="flex flex-col gap-1 pt-4 pb-3 border-b border-gray-200 dark:border-gray-800">
           <li>
             <DropdownItem
@@ -155,7 +146,7 @@ export default function profileDropdown() {
             <DropdownItem
               onItemClick={closeDropdown}
               tag="a"
-              to="/profile"
+              to="/support"
               className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
             >
               <svg
@@ -177,9 +168,10 @@ export default function profileDropdown() {
             </DropdownItem>
           </li>
         </ul>
-        {/*  Sign Out Button */}
+
+        {/* Sign Out Button */}
         <button
-          onClick={handleSignOut}
+          onClick={() => setAlertOpen(true)}
           className="flex items-center gap-3 px-3 py-2 mt-3 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300 w-full text-left"
         >
           <svg
@@ -199,6 +191,27 @@ export default function profileDropdown() {
           Sign out
         </button>
       </Dropdown>
+
+      {/* Custom Confirm Alert */}
+      <CustomAlert
+        isOpen={alertOpen}
+        title="Are you sure?"
+        text="You will be signed out from your account!"
+        confirmText="Yes, sign out!"
+        cancelText="Cancel"
+        onConfirm={handleSignOutConfirm}
+        onCancel={() => setAlertOpen(false)}
+      />
+
+      {/* Custom Error Alert */}
+      <CustomAlert
+        isOpen={errorAlertOpen}
+        title="Error!"
+        text="Something went wrong while signing out."
+        confirmText="OK"
+        showCancel={false}
+        onConfirm={() => setErrorAlertOpen(false)}
+      />
     </div>
   );
 }

@@ -31,7 +31,6 @@ export default function Responders() {
   const { responders, loading, updateIsVerified, updateLanguage } =
     useResponders();
 
-  console.log(responders);
 
   const [showForm, setShowForm] = useState(false);
   const [currentResponder, setCurrentResponder] = useState<Responder | null>(
