@@ -9,7 +9,7 @@ import Badge from "../../components/ui/badge/Badge";
 import ComponentCard from "../common/ComponentCard";
 import { useActionsLog } from "../../hooks/useActionsLogs";
 import { useState, useMemo } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import Pagination from "../ui/Pagination";
 
 export default function ActionsLogTable() {
   const { logs, loading, error } = useActionsLog();
@@ -56,10 +56,6 @@ export default function ActionsLogTable() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
-  const handlePrevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
-  const handleNextPage = () =>
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
 
   return (
     <ComponentCard title="Action Logs List">
@@ -176,25 +172,11 @@ export default function ActionsLogTable() {
           </div>
 
           {/* Pagination */}
-          <div className="flex items-center justify-between mt-4 px-2">
-            <button
-              onClick={handlePrevPage}
-              disabled={currentPage === 1}
-              className="flex items-center gap-2 text-sm px-3 py-1.5 border rounded disabled:opacity-50 dark:text-white"
-            >
-              <ChevronLeft size={16} /> Previous
-            </button>
-            <span className="text-sm text-gray-700 dark:text-gray-300">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              className="flex items-center gap-2 text-sm px-3 py-1.5 border rounded disabled:opacity-50 dark:text-white"
-            >
-              Next <ChevronRight size={16} />
-            </button>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </>
       )}
     </ComponentCard>

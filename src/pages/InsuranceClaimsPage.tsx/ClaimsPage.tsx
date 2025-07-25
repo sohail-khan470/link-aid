@@ -1,6 +1,6 @@
-import ClaimsManagement from "../../components/cliams/ClaimsManagement";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
+import ClaimsTable from "../../components/tables/ClaimsTable";
 export default function InsurerClaimsPage() {
   return (
     <>
@@ -11,7 +11,7 @@ export default function InsurerClaimsPage() {
 
       <PageBreadcrumb pageTitle="Claims Table" />
       <div className="space-y-6">
-        <ClaimsManagement />
+        <ClaimsTable />
       </div>
     </>
   );
