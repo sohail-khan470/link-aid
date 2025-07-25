@@ -61,8 +61,8 @@ const superAdminNavItems: NavItem[] = [
 
   {
     icon: <AlarmCheck />,
-    name: "Emergency Reports",
-    path: "/admin/emergency-reports",
+    name: "Incidents Reports",
+    path: "/admin/incidents-reports",
   },
 
   {

@@ -20,12 +20,15 @@ import CountryMap from "../../../components/ecommerce/CountryMap";
 
 interface Incident {
   id: string;
-  vehicle?: string;
-  timestamp: Timestamp | Date;
   location?: {
     lat: number;
     lng: number;
   };
+  aiSuggestion?: {
+    damageType: string;
+    estimatedCost: string;
+  };
+
   // Add other incident properties as needed
 }
 
