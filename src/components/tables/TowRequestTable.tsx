@@ -31,9 +31,6 @@ export default function TowRequestsTable() {
   const [role, setRole] = useState<string>("");
   const allowedRoles = ["towing_company", "insurer"];
 
-  console.log(role);
-
-
   useEffect(() => {
     const fetchUserRole = async () => {
       const currentUser = getAuth().currentUser;

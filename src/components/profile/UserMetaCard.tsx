@@ -1,4 +1,3 @@
-
 import { useModal } from "../../hooks/useModal";
 import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
@@ -10,8 +9,6 @@ import LoadingSpinner from "../ui/LoadingSpinner";
 export default function UserMetaCard() {
   const { isOpen, openModal, closeModal } = useModal();
   const { profile, loading } = useProfile();
-
-  console.log("User Data:", profile);
 
   if (loading) return <LoadingSpinner />;
   const handleSave = () => {
@@ -222,7 +219,7 @@ export default function UserMetaCard() {
 
                   <div className="col-span-2 lg:col-span-1">
                     <Label>Phone</Label>
-                    <Input type="text" value={profile?.phone || ""}/>
+                    <Input type="text" value={profile?.phone || ""} />
                   </div>
 
                   <div className="col-span-2">
