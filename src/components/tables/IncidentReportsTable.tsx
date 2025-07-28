@@ -159,8 +159,39 @@ export default function IncidentsReportsTable() {
           <LoadingSpinner />
         </div>
       ) : filteredIncidents.length === 0 ? (
-        <div className="p-8 text-center text-gray-600 dark:text-gray-300 text-lg">
-          No incidents found.
+        <div className="flex flex-col items-center justify-center py-10 text-center">
+          <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-full mb-4">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-10 w-10 text-gray-400 dark:text-gray-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 13h6m2 8H7a2 2 0 01-2-2V7a2 2 0 012-2h4l2-2h6a2 2 0 012 2v12a2 2 0 01-2 2z"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
+            No Incident Found
+          </h3>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            Try adjusting filters or check back later for updates.
+          </p>
+          <button
+            onClick={() => {
+              setLocationFilter("");
+              setStatusFilter("");
+              setSearch("");
+            }}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
+          >
+            Reset Filters
+          </button>
         </div>
       ) : (
         <>
