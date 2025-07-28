@@ -2,22 +2,19 @@ import { useState } from "react";
 import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 import ChartTab from "../common/ChartTab";
-import { useRegistrationStatsByRole } from "../../hooks/useUserRegistrationStats";
 import LoadingSpinner from "../ui/LoadingSpinner";
-import { BarChart2Icon } from "lucide-react";
+import { ActivityIcon } from "lucide-react";
+import { useActionsLogStats } from "../../hooks/useActionsLogStats";
 
 type Mode = "hourly" | "weekly" | "monthly";
 
-export default function StatisticsChart() {
-  const [mode, setMode] = useState<Mode>("monthly");
+export default function ActionsLogChart() {
+  const [mode, setMode] = useState<Mode>("hourly");
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [availableYears] = useState<number[]>([2022, 2023, 2024, 2025]);
 
-  const { data: chartData, loading } = useRegistrationStatsByRole(
-    mode,
-    selectedYear
-  );
+  const { data: chartData, loading } = useActionsLogStats(mode, selectedYear);
 
   const categories =
     mode === "monthly"
@@ -37,7 +34,10 @@ export default function StatisticsChart() {
         ]
       : mode === "weekly"
       ? ["Week 1", "Week 2", "Week 3", "Week 4"]
-      : Array.from({ length: 12 }, (_, i) => `${i * 2}:00`);
+      : Array.from(
+          { length: 24 },
+          (_, i) => `${i.toString().padStart(2, "0")}:00`
+        );
 
   const hasData = chartData.some((series) =>
     series.data.some((val) => val > 0)
@@ -47,14 +47,19 @@ export default function StatisticsChart() {
     chart: {
       fontFamily: "Outfit, sans-serif",
       height: 310,
-      type: "area",
+      type: "area", // ✅ area for gradient
       toolbar: { show: false },
     },
-    colors: ["#465FFF", "#00B8D9", "#925FE2", "#E48A2C", "#DB2777", "#10B981"], // Add colors for more roles
+    colors: ["#465FFF", "#00B8D9", "#925FE2", "#E48A2C", "#DB2777", "#10B981"],
     stroke: { curve: "smooth", width: 2 },
     fill: {
       type: "gradient",
-      gradient: { opacityFrom: 0.55, opacityTo: 0 },
+      gradient: {
+        shadeIntensity: 0.6,
+        opacityFrom: 0.55,
+        opacityTo: 0,
+        stops: [0, 90, 100], // ✅ ensures smooth fade-out
+      },
     },
     legend: {
       show: false,
@@ -64,8 +69,8 @@ export default function StatisticsChart() {
         const map: Record<string, string> = {
           civilian: "Civilian",
           tow_operator: "Tow Operator",
-          responder: "Responder",
           insurer: "Insurer",
+          responder: "Responder",
         };
         return map[seriesName] || seriesName;
       },
@@ -79,6 +84,10 @@ export default function StatisticsChart() {
       categories,
       axisBorder: { show: false },
       axisTicks: { show: false },
+      labels: {
+        style: { colors: "#6B7280", fontSize: "12px" },
+        rotate: -45,
+      },
     },
     yaxis: {
       labels: {
@@ -98,10 +107,11 @@ export default function StatisticsChart() {
     <LoadingSpinner />
   ) : (
     <div className="rounded-2xl border border-gray-200 bg-white px-5 pb-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
+      {/* Header */}
       <div className="flex flex-col gap-5 mb-6 sm:flex-row sm:justify-between">
         <div className="w-full">
           <h3 className="text-lg flex gap-2 font-semibold text-gray-800 dark:text-white/90">
-            Registration by Role
+            Actions Log
             <p className="mt-1 text-gray-500 text-theme-sm dark:text-gray-400">
               ({mode.charAt(0).toUpperCase() + mode.slice(1)} Data)
             </p>
@@ -119,22 +129,22 @@ export default function StatisticsChart() {
         </div>
       </div>
 
+      {/* Chart */}
       <div className="max-w-full overflow-x-auto custom-scrollbar">
         <div className="min-w-[1000px] xl:min-w-full">
           {hasData ? (
             <Chart
               options={options}
-              series={chartData} // ✅ Show all roles
-              type="area"
+              series={chartData}
+              type="area" // ✅ same style as StatisticsChart
               height={310}
             />
           ) : (
             <div className="flex flex-col justify-center items-center h-[310px] text-center text-gray-400 dark:text-gray-500">
-              <BarChart2Icon className="w-8 h-8 mb-2 text-gray-300 dark:text-gray-600" />
-              <h4 className="text-base font-semibold">No registration data</h4>
+              <ActivityIcon className="w-8 h-8 mb-2 text-gray-300 dark:text-gray-600" />
+              <h4 className="text-base font-semibold">No actions log data</h4>
               <p className="text-sm mt-1 max-w-xs">
-                There's no data available for the selected role, time range, or
-                year.
+                There's no data available for the selected filters.
               </p>
             </div>
           )}

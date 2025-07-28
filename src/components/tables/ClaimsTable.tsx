@@ -11,7 +11,8 @@ import ComponentCard from "../common/ComponentCard";
 import Badge from "../ui/badge/Badge";
 import LoadingSpinner from "../ui/LoadingSpinner";
 import Pagination from "../ui/Pagination";
-import type { BadgeColor } from "../ui/badge/Badge"; // adjust if needed
+import type { BadgeColor } from "../ui/badge/Badge";
+import { Search, Filter, RotateCcw } from "lucide-react";
 
 const ROWS_PER_PAGE = 10;
 
@@ -32,7 +33,7 @@ export default function ClaimsTable() {
       case "pending":
         return "info";
       default:
-        return "gray";
+        return "error";
     }
   };
 
@@ -72,52 +73,63 @@ export default function ClaimsTable() {
 
   return (
     <ComponentCard title="Claims List">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <input
-          type="text"
-          placeholder="Search by name, category, or status..."
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          className="px-4 py-2 border rounded-md dark:bg-gray-800 dark:text-white"
-        />
-        <div className="flex flex-col sm:flex-row gap-3">
+      {/* Filters */}
+      <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="relative">
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            size={18}
+          />
+          <input
+            type="text"
+            placeholder="Search by name, category, or status..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
+          />
+        </div>
+
+        <div className="relative">
+          <Filter
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            size={18}
+          />
           <select
             value={statusFilter}
             onChange={(e) => {
               setStatusFilter(e.target.value);
               setPage(1);
             }}
-            className="px-4 py-2 border rounded-md dark:bg-gray-800 dark:text-white flex-1"
+            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
           >
             <option value="">All Statuses</option>
             <option value="submitted">Submitted</option>
             <option value="pending">Pending</option>
             <option value="resolved">Resolved</option>
           </select>
+        </div>
 
+        <div className="relative">
+          <Filter
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            size={18}
+          />
           <select
             value={roleFilter}
             onChange={(e) => {
               setRoleFilter(e.target.value);
               setPage(1);
             }}
-            className="px-4 py-2 border rounded-md dark:bg-gray-800 dark:text-white flex-1"
+            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
           >
             <option value="">All Roles</option>
             <option value="civilian">Civilian</option>
             <option value="insurer">Insurer</option>
             <option value="responder">Responder</option>
           </select>
-
-          <button
-            onClick={resetFilters}
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition text-sm"
-          >
-            Reset
-          </button>
         </div>
       </div>
 
@@ -151,14 +163,14 @@ export default function ClaimsTable() {
           </p>
           <button
             onClick={resetFilters}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
+            className="mt-4 flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
           >
-            Reset Filters
+            <RotateCcw size={16} /> Reset Filters
           </button>
         </div>
       ) : (
         <>
-          <div className="relative overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
             <Table className="w-full text-sm">
               <TableHeader className="bg-gray-50 dark:bg-gray-900">
                 <TableRow>
@@ -191,7 +203,6 @@ export default function ClaimsTable() {
                     key={claim.id}
                     className="hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150"
                   >
-                    {/* Claim # */}
                     <TableCell className="px-6 py-4 text-gray-900 dark:text-gray-100">
                       {claim.claimNumber ||
                         `C-${claim.submittedAt
@@ -201,7 +212,6 @@ export default function ClaimsTable() {
                           .replace(/-/g, "")}-${claim.id.slice(0, 5)}`}
                     </TableCell>
 
-                    {/* User Name */}
                     <TableCell className="px-6 py-4 text-gray-800 dark:text-gray-200">
                       {claim?.fullName
                         ? claim.fullName.charAt(0).toUpperCase() +
@@ -209,48 +219,40 @@ export default function ClaimsTable() {
                         : "Unknown"}
                     </TableCell>
 
-                    {/* Category */}
                     <TableCell className="px-6 py-4 text-gray-800 dark:text-gray-200">
                       {claim?.category || "N/A"}
                     </TableCell>
 
-                    {/* Description */}
                     <TableCell className="px-6 py-4 text-gray-800 dark:text-gray-200 max-w-xs truncate">
                       {claim?.description || "N/A"}
                     </TableCell>
 
-                    {/* Status */}
                     <TableCell className="px-6 py-4">
                       <Badge color={getStatusColor(claim.status || "unknown")}>
                         {claim.status?.replace("_", " ") || "Unknown"}
                       </Badge>
                     </TableCell>
 
-                    {/* Assigned To */}
                     <TableCell className="px-6 py-4 text-gray-800 dark:text-gray-200">
                       {claim.assignedInsurerId || "Unassigned"}
                     </TableCell>
 
-                    {/* AI Suggestion */}
                     <TableCell className="px-6 py-4 text-gray-800 dark:text-gray-200 truncate max-w-xs">
                       {claim.aiSuggestion || "N/A"}
                     </TableCell>
 
-                    {/* Submitted At */}
                     <TableCell className="px-6 py-4 text-gray-800 dark:text-gray-200">
                       {claim.submittedAt?.toDate
                         ? claim.submittedAt.toDate().toLocaleDateString()
                         : "N/A"}
                     </TableCell>
 
-                    {/* Updated At */}
                     <TableCell className="px-6 py-4 text-gray-800 dark:text-gray-200">
                       {claim.updatedAt?.toDate
                         ? claim.updatedAt.toDate().toLocaleDateString()
                         : "N/A"}
                     </TableCell>
 
-                    {/* Role */}
                     <TableCell className="px-6 py-4">
                       <Badge
                         color={
@@ -258,7 +260,7 @@ export default function ClaimsTable() {
                             ? "success"
                             : claim?.role === "insurer"
                             ? "warning"
-                            : "gray"
+                            : "info"
                         }
                       >
                         {claim?.role || "N/A"}
@@ -271,7 +273,7 @@ export default function ClaimsTable() {
           </div>
 
           {totalPages > 1 && (
-            <div className="mt-4">
+            <div className="mt-6 flex justify-center">
               <Pagination
                 currentPage={page}
                 totalPages={totalPages}

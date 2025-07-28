@@ -11,6 +11,7 @@ import { useActionsLog } from "../../hooks/useActionsLogs";
 import { useState, useMemo } from "react";
 import Pagination from "../ui/Pagination";
 import LoadingSpinner from "../ui/LoadingSpinner";
+import { Search, Filter, RotateCcw } from "lucide-react";
 
 export default function ActionsLogTable() {
   const { logs, loading, error } = useActionsLog();
@@ -31,8 +32,6 @@ export default function ActionsLogTable() {
         return "primary";
       case "towing_company":
         return "success";
-      case "super_admin":
-        return "error";
       default:
         return "dark";
     }
@@ -58,57 +57,79 @@ export default function ActionsLogTable() {
     currentPage * itemsPerPage
   );
 
+  const resetFilters = () => {
+    setRoleFilter("");
+    setActionFilter("");
+    setUserFilter("");
+  };
+
   return (
-    <ComponentCard title="Action Logs List">
-      {/* 🔎 Filters */}
-      <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-        <input
-          type="text"
-          placeholder="Search by user name"
-          className="border rounded px-3 py-2 text-sm dark:bg-gray-800 dark:text-white"
-          value={userFilter}
-          onChange={(e) => setUserFilter(e.target.value)}
-        />
+    <ComponentCard title="Action Logs">
+      {/* 🔎 Filters Section */}
+      <div className="mb-5 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by user name"
+            className="w-full pl-10 border rounded-lg px-3 py-2 text-sm dark:bg-gray-800 dark:text-white focus:border-blue-400 focus:ring focus:ring-blue-300/40 transition"
+            value={userFilter}
+            onChange={(e) => setUserFilter(e.target.value)}
+          />
+        </div>
 
-        <select
-          className="border rounded px-3 py-2 text-sm dark:bg-gray-800 dark:text-white"
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
-        >
-          <option value="">All Roles</option>
-          <option value="insurer">Insurer</option>
-          <option value="towing_company">Towing Company</option>
-          <option value="responder">Responder</option>
-          <option value="civilian">Civilian</option>
-        </select>
+        <div className="relative">
+          <Filter className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+          <select
+            className="w-full pl-10 border rounded-lg px-3 py-2 text-sm dark:bg-gray-800 dark:text-white focus:border-blue-400 focus:ring focus:ring-blue-300/40 transition"
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+          >
+            <option value="">All Roles</option>
+            <option value="insurer">Insurer</option>
+            <option value="towing_company">Towing Company</option>
+            <option value="responder">Responder</option>
+            <option value="civilian">Civilian</option>
+          </select>
+        </div>
 
-        <select
-          className="border rounded px-3 py-2 text-sm dark:bg-gray-800 dark:text-white"
-          value={actionFilter}
-          onChange={(e) => setActionFilter(e.target.value)}
+        <div className="relative">
+          <Filter className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+          <select
+            className="w-full pl-10 border rounded-lg px-3 py-2 text-sm dark:bg-gray-800 dark:text-white focus:border-blue-400 focus:ring focus:ring-blue-300/40 transition"
+            value={actionFilter}
+            onChange={(e) => setActionFilter(e.target.value)}
+          >
+            <option value="">All Actions</option>
+            {[...new Set(logs.map((log) => log.action))].map((action) => (
+              <option key={action} value={action}>
+                {action}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <button
+          onClick={resetFilters}
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-300 rounded-lg shadow transition"
         >
-          <option value="">All Actions</option>
-          {[...new Set(logs.map((log) => log.action))].map((action) => (
-            <option key={action} value={action}>
-              {action}
-            </option>
-          ))}
-        </select>
+          <RotateCcw size={16} /> Reset
+        </button>
       </div>
 
       {/* 🔄 Table Rendering */}
       {loading ? (
-        <div className="py-6 text-center">
-          <LoadingSpinner />
+        <div className="py-10 flex justify-center">
+          <LoadingSpinner size={40} />
         </div>
       ) : error ? (
         <p className="text-center py-6 text-red-500">{error}</p>
       ) : filteredLogs.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-10 text-center">
+        <div className="flex flex-col items-center justify-center py-12 text-center">
           <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-full mb-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-10 w-10 text-gray-400 dark:text-gray-500"
+              className="h-12 w-12 text-gray-400 dark:text-gray-500"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -122,57 +143,32 @@ export default function ActionsLogTable() {
             </svg>
           </div>
           <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
-            No Action Found
+            No Actions Found
           </h3>
           <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
             Try adjusting filters or check back later for updates.
           </p>
-          <button
-            onClick={() => {
-              setRoleFilter("");
-              setActionFilter("");
-              setUserFilter("");
-            }}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
-          >
-            Reset Filters
-          </button>
         </div>
       ) : (
         <>
-          <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+          <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] shadow-sm">
             <div className="max-w-full overflow-x-auto">
               <Table>
-                <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+                <TableHeader className="border-b border-gray-100 dark:border-white/[0.05] bg-gray-50 dark:bg-gray-900">
                   <TableRow>
-                    <TableCell
-                      className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300 text-start"
-                      isHeader
-                    >
+                    <TableCell isHeader className="px-5 py-3 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                       User
                     </TableCell>
-                    <TableCell
-                      className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300 text-start"
-                      isHeader
-                    >
+                    <TableCell isHeader className="px-5 py-3 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                       Role
                     </TableCell>
-                    <TableCell
-                      className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300 text-start"
-                      isHeader
-                    >
+                    <TableCell isHeader className="px-5 py-3 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                       Action
                     </TableCell>
-                    <TableCell
-                      className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300 text-start"
-                      isHeader
-                    >
+                    <TableCell isHeader className="px-5 py-3 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                       Description
                     </TableCell>
-                    <TableCell
-                      className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300 text-start"
-                      isHeader
-                    >
+                    <TableCell isHeader className="px-5 py-3 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                       Time
                     </TableCell>
                   </TableRow>
@@ -183,10 +179,10 @@ export default function ActionsLogTable() {
                       key={log.id}
                       className="hover:bg-gray-50 dark:hover:bg-white/[0.05] transition"
                     >
-                      <TableCell className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300">
+                      <TableCell className="px-5 py-4 text-sm text-gray-800 dark:text-gray-200">
                         {log.userName || "Unknown"}
                       </TableCell>
-                      <TableCell className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300">
+                      <TableCell className="px-5 py-4">
                         <Badge size="sm" color={getRoleColor(log.role)}>
                           {log.role}
                         </Badge>
@@ -194,10 +190,10 @@ export default function ActionsLogTable() {
                       <TableCell className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300">
                         {log.action}
                       </TableCell>
-                      <TableCell className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300">
+                      <TableCell className="px-5 py-4 text-sm text-gray-600 dark:text-gray-400">
                         {log.description || "-"}
                       </TableCell>
-                      <TableCell className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300">
+                      <TableCell className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">
                         {log.timestamp.toDate().toLocaleString()}
                       </TableCell>
                     </TableRow>
@@ -207,12 +203,14 @@ export default function ActionsLogTable() {
             </div>
           </div>
 
-          {/* Pagination */}
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
+          {/* 📌 Pagination */}
+          <div className="mt-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
         </>
       )}
     </ComponentCard>
