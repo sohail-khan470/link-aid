@@ -10,6 +10,7 @@ import ComponentCard from "../common/ComponentCard";
 import { useActionsLog } from "../../hooks/useActionsLogs";
 import { useState, useMemo } from "react";
 import Pagination from "../ui/Pagination";
+import LoadingSpinner from "../ui/LoadingSpinner";
 
 export default function ActionsLogTable() {
   const { logs, loading, error } = useActionsLog();
@@ -97,11 +98,46 @@ export default function ActionsLogTable() {
 
       {/* 🔄 Table Rendering */}
       {loading ? (
-        <p className="text-center py-6 text-gray-500 dark:text-gray-300">
-          Loading logs...
-        </p>
+        <div className="py-6 text-center">
+          <LoadingSpinner />
+        </div>
       ) : error ? (
         <p className="text-center py-6 text-red-500">{error}</p>
+      ) : filteredLogs.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-10 text-center">
+          <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-full mb-4">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-10 w-10 text-gray-400 dark:text-gray-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 13h6m2 8H7a2 2 0 01-2-2V7a2 2 0 012-2h4l2-2h6a2 2 0 012 2v12a2 2 0 01-2 2z"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
+            No Action Found
+          </h3>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            Try adjusting filters or check back later for updates.
+          </p>
+          <button
+            onClick={() => {
+              setRoleFilter("");
+              setActionFilter("");
+              setUserFilter("");
+            }}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
+          >
+            Reset Filters
+          </button>
+        </div>
       ) : (
         <>
           <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
