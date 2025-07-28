@@ -12,7 +12,8 @@ import LoadingSpinner from "../ui/LoadingSpinner";
 import Badge from "../ui/badge/Badge";
 import { GeoPoint, Timestamp } from "firebase/firestore";
 import Pagination from "../ui/Pagination";
-import type { BadgeColor } from "../ui/badge/Badge"; // ✅ Adjust path if needed
+import type { BadgeColor } from "../ui/badge/Badge";
+import { Search, MapPin, FilterX } from "lucide-react";
 
 const ROWS_PER_PAGE = 8;
 
@@ -27,16 +28,16 @@ export default function IncidentsReportsTable() {
   const getStatusColor = (status: string): BadgeColor => {
     switch (status) {
       case "submitted":
-        return "info"; // Or "primary"
+        return "info";
       case "request_tow":
       case "tow_requested":
-        return "danger"; // Use this instead of "error"
+        return "danger";
       case "on_the_way":
         return "warning";
       case "resolved":
         return "success";
       default:
-        return "gray"; // Fallback color
+        return "gray";
     }
   };
 
@@ -114,56 +115,79 @@ export default function IncidentsReportsTable() {
 
   const totalPages = Math.ceil(filteredIncidents.length / ROWS_PER_PAGE);
 
+  const resetFilters = () => {
+    setLocationFilter("");
+    setStatusFilter("");
+    setSearch("");
+    setPage(1);
+  };
+
   return (
     <ComponentCard title="Incident Reports">
-      <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <input
-          type="text"
-          placeholder="Search by email..."
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          className="px-4 py-2 border rounded-md dark:bg-gray-800 dark:text-white"
-        />
-        <select
-          value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(e.target.value);
-            setPage(1);
-          }}
-          className="px-4 py-2 border rounded-md dark:bg-gray-800 dark:text-white"
+      {/* Filters */}
+      <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+        <div className="relative">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by email..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            className="w-full pl-10 pr-3 py-2 border rounded-md dark:bg-gray-800 dark:text-white"
+          />
+        </div>
+        <div className="relative">
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
+            className="w-full px-3 py-2 border rounded-md dark:bg-gray-800 dark:text-white"
+          >
+            <option value="">All Statuses</option>
+            <option value="submitted">Submitted</option>
+            <option value="tow_requested">Tow Requested</option>
+            <option value="request_tow">Request Tow</option>
+            <option value="on_the_way">On The Way</option>
+            <option value="resolved">Resolved</option>
+          </select>
+        </div>
+        <div className="relative">
+          <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by location..."
+            value={locationFilter}
+            onChange={(e) => {
+              setLocationFilter(e.target.value);
+              setPage(1);
+            }}
+            className="w-full pl-10 pr-3 py-2 border rounded-md dark:bg-gray-800 dark:text-white"
+          />
+        </div>
+        <button
+          onClick={resetFilters}
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg shadow hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition"
         >
-          <option value="">All Statuses</option>
-          <option value="submitted">Submitted</option>
-          <option value="tow_requested">Tow Requested</option>
-          <option value="request_tow">Request Tow</option>
-          <option value="on_the_way">On The Way</option>
-          <option value="resolved">Resolved</option>
-        </select>
-        <input
-          type="text"
-          placeholder="Search by location..."
-          value={locationFilter}
-          onChange={(e) => {
-            setLocationFilter(e.target.value);
-            setPage(1);
-          }}
-          className="px-4 py-2 border rounded-md dark:bg-gray-800 dark:text-white"
-        />
+          <FilterX className="h-4 w-4" />
+          Reset
+        </button>
       </div>
 
       {loading ? (
-        <div className="p-8 flex justify-center items-center">
+        <div className="p-10 flex justify-center items-center">
           <LoadingSpinner />
         </div>
       ) : filteredIncidents.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-10 text-center">
-          <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-full mb-4">
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="bg-gray-100 dark:bg-gray-800 p-8 rounded-full mb-6 shadow">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-10 w-10 text-gray-400 dark:text-gray-500"
+              className="h-12 w-12 text-gray-400 dark:text-gray-500"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -176,44 +200,36 @@ export default function IncidentsReportsTable() {
               />
             </svg>
           </div>
-          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
-            No Incident Found
+          <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-200">
+            No Incidents Found
           </h3>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
             Try adjusting filters or check back later for updates.
           </p>
           <button
-            onClick={() => {
-              setLocationFilter("");
-              setStatusFilter("");
-              setSearch("");
-            }}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
+            onClick={resetFilters}
+            className="mt-5 px-5 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
           >
             Reset Filters
           </button>
         </div>
       ) : (
         <>
-          <div className="relative overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="relative overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
             <Table className="w-full text-sm">
               <TableHeader className="bg-gray-50 dark:bg-gray-900">
                 <TableRow>
-                  {[
-                    "User",
-                    "Category",
-                    "Status",
-                    "Submitted At",
-                    "Location",
-                  ].map((heading) => (
-                    <TableCell
-                      key={heading}
-                      isHeader
-                      className="px-6 py-4 text-left font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide"
-                    >
-                      {heading}
-                    </TableCell>
-                  ))}
+                  {["User", "Category", "Status", "Submitted At", "Location"].map(
+                    (heading) => (
+                      <TableCell
+                        key={heading}
+                        isHeader
+                        className="px-6 py-4 text-left font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide"
+                      >
+                        {heading}
+                      </TableCell>
+                    )
+                  )}
                 </TableRow>
               </TableHeader>
 
@@ -232,9 +248,7 @@ export default function IncidentsReportsTable() {
                       {incident.category || "Uncategorized"}
                     </TableCell>
                     <TableCell className="px-6 py-4">
-                      <Badge
-                        color={getStatusColor(incident.status || "unknown")}
-                      >
+                      <Badge color={getStatusColor(incident.status || "unknown")}>
                         {incident.status?.replace("_", " ") || "Unknown"}
                       </Badge>
                     </TableCell>
@@ -251,7 +265,7 @@ export default function IncidentsReportsTable() {
           </div>
 
           {totalPages > 1 && (
-            <div className="mt-4">
+            <div className="mt-6">
               <Pagination
                 currentPage={page}
                 totalPages={totalPages}

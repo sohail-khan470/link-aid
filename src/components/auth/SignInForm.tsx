@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
@@ -7,6 +7,7 @@ import Button from "../ui/button/Button";
 import { useSignIn } from "../../hooks/useSignIn";
 
 export default function SignInForm() {
+  const navigate = useNavigate();
   const {
     showPassword,
     setShowPassword,
@@ -109,12 +110,14 @@ export default function SignInForm() {
                   Keep me logged in
                 </span>
               </div>
-              <Link
-                to="/reset-password"
-                className="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400"
+
+              <button
+                type="button"
+                onClick={() => navigate("/reset-password")}
+                className="text-sm text-blue-500"
               >
-                Forgot password?
-              </Link>
+                Forget password?
+              </button>
             </div>
 
             <div>

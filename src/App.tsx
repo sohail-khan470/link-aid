@@ -36,6 +36,7 @@ import TowRequestsPage from "./pages/TowRequestPage/TowRequestPage";
 import ActionLogPage from "./pages/ActionLogsPage/ActionLogPage";
 import InsuranceStaffPage from "./pages/InsuranceCompany/InsuranceStaffPage";
 import IncidentsReportsPage from "./pages/IncidentsReportsPage/IncidentsReportsPage";
+import ResetPassword from "./components/auth/ResetPassword";
 
 // Types
 interface FirebaseUserData {
@@ -44,12 +45,10 @@ interface FirebaseUserData {
 }
 
 export default function App() {
-  const [user, setUser] = useState<User | null>(null);
+  const [, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [role, setRole] = useState("");
-  const [firebaseUser, setFirebaseUser] = useState<FirebaseUserData | null>(
-    null
-  );
+  const [, setRole] = useState("");
+  const [, setFirebaseUser] = useState<FirebaseUserData | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -88,6 +87,8 @@ export default function App() {
         <Route element={<PublicRoute />}>
           <Route path="/signin" element={<SignIn />} />
         </Route>
+        {/* Reset Password */}
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>

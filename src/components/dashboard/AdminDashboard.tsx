@@ -4,6 +4,7 @@ import MonthlyTarget from "../ecommerce/MonthlyTarget";
 import RecentOrders from "../ecommerce/RecentOrders";
 import PageMeta from "../common/PageMeta";
 import MonthlyRegistrationsChart from "../ecommerce/MonthlyRegistrationsChart";
+import ActionsLogChart from "../ecommerce/ActionsLogChart";
 
 export default function AdminDashboard() {
   return (
@@ -27,13 +28,12 @@ export default function AdminDashboard() {
           <StatisticsChart />
         </div>
 
-        <div className="col-span-12 xl:col-span-5">
-          {/* <DemographicCard /> */}
-        </div>
-
-        <div className="col-span-12">
+        <div className="col-span-12 grid grid-cols-2 gap-3">
+          <ActionsLogChart />
           <RecentOrders />
         </div>
+
+        <div className="col-span-12">{/* <RecentOrders /> */}</div>
       </div>
     </>
   );

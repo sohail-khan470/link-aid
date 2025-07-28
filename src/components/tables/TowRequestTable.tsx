@@ -21,7 +21,7 @@ import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 import { db, auth } from "../../../firebase";
 import { useOperators } from "../../hooks/useOperators";
 import LoadingSpinner from "../ui/LoadingSpinner";
-import { Save, X, Pencil } from "lucide-react";
+import { Save, X, Pencil, Search, Filter, RotateCcw } from "lucide-react";
 import Pagination from "../ui/Pagination";
 
 const ROWS_PER_PAGE = 6;
@@ -34,13 +34,12 @@ export default function TowRequestsTable() {
   const [role, setRole] = useState<string>("");
   const allowedRoles = ["towing_company", "insurer"];
 
-  // Filters and pagination state
+  // Filters
   const [searchName, setSearchName] = useState("");
   const [searchRole, setSearchRole] = useState("");
   const [searchStatus, setSearchStatus] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Load auth user
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
@@ -48,7 +47,6 @@ export default function TowRequestsTable() {
     return () => unsubscribe();
   }, []);
 
-  // Load current user role
   useEffect(() => {
     (async () => {
       const user = getAuth().currentUser;
@@ -58,7 +56,6 @@ export default function TowRequestsTable() {
     })();
   }, []);
 
-  // Map status to badge color
   const getStatusColor = (status: string) => {
     switch (status) {
       case "requested":
@@ -74,7 +71,6 @@ export default function TowRequestsTable() {
     }
   };
 
-  // Handlers for editing
   const handleEdit = (r: any) => {
     setEditingId(r.id);
     setEditData({
@@ -97,7 +93,6 @@ export default function TowRequestsTable() {
     if (currentUser?.uid) updates.companyId = currentUser.uid;
     await updateDoc(doc(db, "tow_requests", id), updates);
 
-    // Log action
     if (currentUser) {
       const snap = await getDoc(doc(db, "users", currentUser.uid));
       const userData = snap.exists() ? snap.data() : null;
@@ -123,7 +118,6 @@ export default function TowRequestsTable() {
     setEditData({});
   };
 
-  // Apply filters
   const filtered = useMemo(
     () =>
       requests.filter(
@@ -135,7 +129,6 @@ export default function TowRequestsTable() {
     [requests, searchName, searchRole, searchStatus]
   );
 
-  // Pagination slice
   const paginated = useMemo(() => {
     const start = (currentPage - 1) * ROWS_PER_PAGE;
     return filtered.slice(start, start + ROWS_PER_PAGE);
@@ -143,62 +136,88 @@ export default function TowRequestsTable() {
 
   const totalPages = Math.ceil(filtered.length / ROWS_PER_PAGE);
 
+  const resetFilters = () => {
+    setSearchName("");
+    setSearchRole("");
+    setSearchStatus("");
+    setCurrentPage(1);
+  };
+
   return (
     <ComponentCard title="Tow Requests">
-      {/* Filters */}
-      <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <input
-          type="text"
-          placeholder="Search name..."
-          value={searchName}
-          onChange={(e) => {
-            setSearchName(e.target.value);
-            setCurrentPage(1);
-          }}
-          className="border px-3 py-2 rounded dark:bg-gray-800 dark:text-white"
-        />
-        <select
-          value={searchRole}
-          onChange={(e) => {
-            setSearchRole(e.target.value);
-            setCurrentPage(1);
-          }}
-          className="border px-3 py-2 rounded dark:bg-gray-800 dark:text-white"
+      {/* 🔎 Filters */}
+      <div className="mb-5 grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by civilian name"
+            value={searchName}
+            onChange={(e) => {
+              setSearchName(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full pl-10 border rounded-lg px-3 py-2 text-sm dark:bg-gray-800 dark:text-white focus:border-blue-400 focus:ring focus:ring-blue-300/40 transition"
+          />
+        </div>
+
+        <div className="relative">
+          <Filter className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+          <select
+            value={searchRole}
+            onChange={(e) => {
+              setSearchRole(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full pl-10 border rounded-lg px-3 py-2 text-sm dark:bg-gray-800 dark:text-white focus:border-blue-400 focus:ring focus:ring-blue-300/40 transition"
+          >
+            <option value="">All Roles</option>
+            {Array.from(new Set(requests.map((r) => r.role))).map((rl) => (
+              <option key={rl} value={rl}>
+                {rl}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="relative">
+          <Filter className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+          <select
+            value={searchStatus}
+            onChange={(e) => {
+              setSearchStatus(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full pl-10 border rounded-lg px-3 py-2 text-sm dark:bg-gray-800 dark:text-white focus:border-blue-400 focus:ring focus:ring-blue-300/40 transition"
+          >
+            <option value="">All Statuses</option>
+            {Array.from(new Set(requests.map((r) => r.status))).map((st) => (
+              <option key={st} value={st}>
+                {st.replace("_", " ")}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <button
+          onClick={resetFilters}
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-300 rounded-lg shadow transition"
         >
-          <option value="">All Roles</option>
-          {Array.from(new Set(requests.map((r) => r.role))).map((rl) => (
-            <option key={rl} value={rl}>
-              {rl}
-            </option>
-          ))}
-        </select>
-        <select
-          value={searchStatus}
-          onChange={(e) => {
-            setSearchStatus(e.target.value);
-            setCurrentPage(1);
-          }}
-          className="border px-3 py-2 rounded dark:bg-gray-800 dark:text-white"
-        >
-          <option value="">All Statuses</option>
-          {Array.from(new Set(requests.map((r) => r.status))).map((st) => (
-            <option key={st} value={st}>
-              {st.replace("_", " ")}
-            </option>
-          ))}
-        </select>
+          <RotateCcw size={16} /> Reset
+        </button>
       </div>
 
+      {/* Table */}
       {loading ? (
-        <div className="p-8 flex justify-center">
+        <div className="p-10 flex justify-center">
           <LoadingSpinner />
         </div>
       ) : filtered.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 text-center">
+        <div className="flex flex-col items-center justify-center py-12 text-center">
           <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-full mb-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-10 w-10 text-gray-400 dark:text-gray-500"
+              className="h-12 w-12 text-gray-400 dark:text-gray-500"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -212,27 +231,16 @@ export default function TowRequestsTable() {
             </svg>
           </div>
           <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
-            No Tow Request Found
+            No Tow Requests Found
           </h3>
           <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
             Try adjusting filters or check back later for updates.
           </p>
-          <button
-            onClick={() => {
-              setSearchStatus("");
-              setSearchRole("");
-              setSearchName("")
-            
-            }}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
-          >
-            Reset Filters
-          </button>
         </div>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
-            <Table className="w-full text-sm">
+          <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+            <Table>
               <TableHeader className="bg-gray-50 dark:bg-gray-900">
                 <TableRow>
                   {[
@@ -263,37 +271,34 @@ export default function TowRequestsTable() {
                 </TableRow>
               </TableHeader>
 
-              <TableBody className="divide-y divide-gray-200 dark:divide-gray-700">
+              <TableBody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {paginated.map((r) => {
                   const isEditing = editingId === r.id;
                   return (
                     <TableRow
                       key={r.id}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150"
+                      className="hover:bg-gray-50 dark:hover:bg-gray-900/50 transition"
                     >
-                      {/* Civilian & role */}
+                      {/* Civilian & Role */}
                       <TableCell className="px-6 py-4">
                         <div>
                           <span className="block font-medium text-gray-900 dark:text-gray-100">
                             {r.civilianName}
                           </span>
-                          <span className="block text-gray-500 dark:text-gray-400 text-xs">
+                          <span className="block text-xs text-gray-500 dark:text-gray-400">
                             {r.role}
                           </span>
                         </div>
                       </TableCell>
+
                       {/* Vehicle Type */}
                       <TableCell className="px-6 py-4">
                         {isEditing ? (
                           <input
                             type="text"
-                            name="vehicleType"
                             value={editData.vehicleType}
                             onChange={(e) =>
-                              setEditData({
-                                ...editData,
-                                vehicleType: e.target.value,
-                              })
+                              setEditData({ ...editData, vehicleType: e.target.value })
                             }
                             className="w-full px-3 py-2 border rounded dark:bg-gray-800 dark:text-white"
                           />
@@ -303,24 +308,24 @@ export default function TowRequestsTable() {
                           </span>
                         )}
                       </TableCell>
+
                       {/* Status */}
                       <TableCell className="px-6 py-4">
                         {isEditing ? (
                           <select
-                            name="status"
                             value={editData.status}
                             onChange={(e) =>
-                              setEditData({
-                                ...editData,
-                                status: e.target.value,
-                              })
+                              setEditData({ ...editData, status: e.target.value })
                             }
                             className="w-full px-3 py-2 border rounded dark:bg-gray-800 dark:text-white"
                           >
-                            <option value="requested">Requested</option>
-                            <option value="accepted">Accepted</option>
-                            <option value="pending">Pending</option>
-                            <option value="resolved">Resolved</option>
+                            {["requested", "accepted", "pending", "resolved"].map(
+                              (st) => (
+                                <option key={st} value={st}>
+                                  {st}
+                                </option>
+                              )
+                            )}
                           </select>
                         ) : (
                           <Badge color={getStatusColor(r.status)}>
@@ -328,16 +333,14 @@ export default function TowRequestsTable() {
                           </Badge>
                         )}
                       </TableCell>
+
                       {/* Operator */}
                       <TableCell className="px-6 py-4">
                         {isEditing ? (
                           <OperatorDropdown
                             value={editData.assignedOperatorId}
                             onChange={(id) =>
-                              setEditData({
-                                ...editData,
-                                assignedOperatorId: id,
-                              })
+                              setEditData({ ...editData, assignedOperatorId: id })
                             }
                             companyId={currentUser?.uid}
                           />
@@ -347,18 +350,15 @@ export default function TowRequestsTable() {
                           </span>
                         )}
                       </TableCell>
+
                       {/* ETA */}
                       <TableCell className="px-6 py-4">
                         {isEditing ? (
                           <input
                             type="number"
-                            name="etaMinutes"
                             value={editData.etaMinutes}
                             onChange={(e) =>
-                              setEditData({
-                                ...editData,
-                                etaMinutes: e.target.value,
-                              })
+                              setEditData({ ...editData, etaMinutes: e.target.value })
                             }
                             className="w-full px-3 py-2 border rounded dark:bg-gray-800 dark:text-white"
                           />
@@ -368,17 +368,14 @@ export default function TowRequestsTable() {
                           </span>
                         )}
                       </TableCell>
+
                       {/* Notes */}
                       <TableCell className="px-6 py-4">
                         {isEditing ? (
                           <textarea
-                            name="notes"
                             value={editData.notes}
                             onChange={(e) =>
-                              setEditData({
-                                ...editData,
-                                notes: e.target.value,
-                              })
+                              setEditData({ ...editData, notes: e.target.value })
                             }
                             rows={1}
                             className="w-full px-3 py-2 border rounded dark:bg-gray-800 dark:text-white"
@@ -389,21 +386,19 @@ export default function TowRequestsTable() {
                           </span>
                         )}
                       </TableCell>
+
                       {/* Requested At */}
-                      <TableCell className="px-6 py-4">
-                        <span className="text-gray-900 dark:text-gray-100">
-                          {r.requestedAt
-                            ?.toDate()
-                            .toLocaleString("en-GB", {
-                              day: "2-digit",
-                              month: "2-digit",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: true,
-                            }) || "-"}
-                        </span>
+                      <TableCell className="px-6 py-4 text-gray-700 dark:text-gray-300">
+                        {r.requestedAt?.toDate().toLocaleString("en-GB", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        }) || "-"}
                       </TableCell>
+
                       {/* Actions */}
                       {allowedRoles.includes(role) && (
                         <TableCell className="px-6 py-4">
@@ -439,11 +434,14 @@ export default function TowRequestsTable() {
             </Table>
           </div>
 
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
+          {/* Pagination */}
+          <div className="mt-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
         </>
       )}
 
