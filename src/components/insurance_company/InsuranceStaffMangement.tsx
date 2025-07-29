@@ -26,9 +26,9 @@ export default function InsuranceStaffManagement() {
     updateStaffRole,
   } = useStaffAssignment();
 
-  const [selectedRole, setSelectedRole] = useState("driver");
+  const [selectedRole, setSelectedRole] = useState("insurer");
   const [editRowId, setEditRowId] = useState<string | null>(null);
-  const [editRole, setEditRole] = useState<string>("driver");
+  const [editRole, setEditRole] = useState<string>("insurer");
   const [editVerified, setEditVerified] = useState<boolean>(false);
 
   // 🔔 Alert state

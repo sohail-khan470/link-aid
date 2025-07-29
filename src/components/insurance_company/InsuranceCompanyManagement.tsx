@@ -24,6 +24,7 @@ interface Company {
   region: string;
   createdAt?: Timestamp;
   activeClaims?: any[];
+  isVerified?: boolean; // ✅ Added field
 }
 
 export default function InsuranceCompanyManagement() {
@@ -41,11 +42,19 @@ export default function InsuranceCompanyManagement() {
     companyName: string;
     contactEmail: string;
     region: string;
+    phone?: string;
+    location?: string;
+    language?: string;
+    password?: string;
     createdAt?: Timestamp;
   }>({
     companyName: "",
     contactEmail: "",
     region: "",
+    phone: "",
+    location: "",
+    language: "en",
+    password: "",
     createdAt: undefined,
   });
 
@@ -88,6 +97,7 @@ export default function InsuranceCompanyManagement() {
       contactEmail: "",
       region: "",
       createdAt: Timestamp.now(),
+      password: "",
     });
     setShowForm(true);
   };
@@ -117,7 +127,7 @@ export default function InsuranceCompanyManagement() {
                 value={regionFilter}
                 onChange={(e) => {
                   setRegionFilter(e.target.value);
-                  setCurrentPage(1); // reset pagination on filter change
+                  setCurrentPage(1);
                 }}
                 className="border rounded-lg pl-10 pr-3 py-2 text-sm dark:bg-gray-800 dark:text-white"
               />
@@ -171,6 +181,7 @@ export default function InsuranceCompanyManagement() {
                         "CreatedAt",
                         "Region",
                         "Active Claims",
+                        "Verified", // ✅ Added column
                         "Actions",
                       ].map((heading) => (
                         <TableCell
@@ -214,6 +225,15 @@ export default function InsuranceCompanyManagement() {
                             }
                           >
                             {c.activeClaims?.length || 0} Active
+                          </Badge>
+                        </TableCell>
+                        {/* ✅ Verified Badge */}
+                        <TableCell className="py-3 px-5">
+                          <Badge
+                            size="sm"
+                            color={c.isVerified ? "success" : "danger"}
+                          >
+                            {c.isVerified ? "Verified" : "Unverified"}
                           </Badge>
                         </TableCell>
                         <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
@@ -283,6 +303,7 @@ export default function InsuranceCompanyManagement() {
                       onChange={handleInputChange}
                     />
                   </div>
+
                   <div>
                     <Label htmlFor="contactEmail">Contact Email</Label>
                     <Input
@@ -294,6 +315,7 @@ export default function InsuranceCompanyManagement() {
                       onChange={handleInputChange}
                     />
                   </div>
+
                   <div>
                     <Label htmlFor="region">Region</Label>
                     <Input
@@ -305,6 +327,57 @@ export default function InsuranceCompanyManagement() {
                       onChange={handleInputChange}
                     />
                   </div>
+
+                  <div>
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      placeholder="+92 300 1234567"
+                      value={formData.phone || ""}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="location">Location</Label>
+                    <Input
+                      type="text"
+                      id="location"
+                      name="location"
+                      placeholder="Islamabad, PK"
+                      value={formData.location || ""}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="language">Language</Label>
+                    <Input
+                      type="text"
+                      id="language"
+                      name="language"
+                      placeholder="en"
+                      value={formData.language || "en"}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+
+                  {!currentCompany && (
+                    <div>
+                      <Label htmlFor="password">Password</Label>
+                      <Input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Enter a password"
+                        value={formData.password || ""}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                  )}
+
                   <div>
                     <button
                       type="submit"

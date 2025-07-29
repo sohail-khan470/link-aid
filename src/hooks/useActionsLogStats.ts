@@ -16,27 +16,23 @@ export function useActionsLogStats(mode: Mode, year: number) {
   useEffect(() => {
     const logsRef = collection(db, "actions_log");
 
-    const now = new Date();
     let startDate: Date;
     let endDate: Date;
 
-    if (mode === "hourly") {
-      // Current day (00:00 → 23:59)
-      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
-    } else if (mode === "weekly") {
-      // Start of current week (Sunday) → end of week (next Sunday)
-      const day = now.getDay(); // 0 = Sunday
-      startDate = new Date(now);
-      startDate.setDate(now.getDate() - day);
-      startDate.setHours(0, 0, 0, 0);
+    const today = new Date();
 
-      endDate = new Date(startDate);
-      endDate.setDate(startDate.getDate() + 7);
+    if (mode === "hourly") {
+      // Current day
+      startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
+      endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 0, 0, 0);
+    } else if (mode === "weekly") {
+      // Current month only
+      startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+      endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59);
     } else {
-      // Current month
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      // Monthly → Current year
+      startDate = new Date(year, 0, 1);
+      endDate = new Date(year + 1, 0, 1);
     }
 
     const q = query(
@@ -50,10 +46,7 @@ export function useActionsLogStats(mode: Mode, year: number) {
       (snapshot) => {
         const roleBuckets: Record<string, number[]> = {};
         const bucketCount =
-          mode === "monthly" ? new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() // days in month
-          : mode === "weekly" ? 7
-          : 24; // hourly
-
+          mode === "monthly" ? 12 : mode === "weekly" ? 4 : 24;
         const initArray = Array(bucketCount).fill(0);
 
         snapshot.forEach((doc) => {
@@ -68,9 +61,11 @@ export function useActionsLogStats(mode: Mode, year: number) {
 
           let index = 0;
           if (mode === "monthly") {
-            index = date.getDate() - 1; // day of month (0-based)
+            index = date.getMonth(); // Jan = 0 → Dec = 11
           } else if (mode === "weekly") {
-            index = date.getDay(); // 0 = Sunday
+            // Calculate week number within current month
+            const week = Math.ceil(date.getDate() / 7);
+            index = Math.min(week - 1, 3); // ensure 0–3
           } else if (mode === "hourly") {
             index = date.getHours(); // 0–23
           }
