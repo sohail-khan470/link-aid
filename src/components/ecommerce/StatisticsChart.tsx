@@ -58,17 +58,6 @@ export default function StatisticsChart() {
     },
     legend: {
       show: false,
-      fontSize: "14px",
-      labels: { colors: "#6B7280" },
-      formatter: (seriesName) => {
-        const map: Record<string, string> = {
-          civilian: "Civilian",
-          tow_operator: "Tow Operator",
-          responder: "Responder",
-          insurer: "Insurer",
-        };
-        return map[seriesName] || seriesName;
-      },
     },
     grid: {
       xaxis: { lines: { show: false } },

@@ -9,17 +9,17 @@ import {
 import Badge from "../../components/ui/badge/Badge";
 import ComponentCard from "../common/ComponentCard";
 import { useTowRequests } from "../../hooks/useTowRequests";
-import {
-  doc,
-  updateDoc,
-  getDoc,
-  addDoc,
-  collection,
-  serverTimestamp,
-} from "firebase/firestore";
 import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 import { db, auth } from "../../../firebase";
 import { useOperators } from "../../hooks/useOperators";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  serverTimestamp,
+  updateDoc,
+} from "firebase/firestore";
 import LoadingSpinner from "../ui/LoadingSpinner";
 import { Save, X, Pencil, Search, Filter, RotateCcw } from "lucide-react";
 import Pagination from "../ui/Pagination";
@@ -28,6 +28,7 @@ const ROWS_PER_PAGE = 6;
 
 export default function TowRequestsTable() {
   const { requests, loading, error, refetch } = useTowRequests();
+
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
@@ -66,6 +67,8 @@ export default function TowRequestsTable() {
         return "primary";
       case "resolved":
         return "success";
+      case "cancelled":
+        return "error";
       default:
         return "error";
     }
@@ -298,7 +301,10 @@ export default function TowRequestsTable() {
                             type="text"
                             value={editData.vehicleType}
                             onChange={(e) =>
-                              setEditData({ ...editData, vehicleType: e.target.value })
+                              setEditData({
+                                ...editData,
+                                vehicleType: e.target.value,
+                              })
                             }
                             className="w-full px-3 py-2 border rounded dark:bg-gray-800 dark:text-white"
                           />
@@ -315,17 +321,24 @@ export default function TowRequestsTable() {
                           <select
                             value={editData.status}
                             onChange={(e) =>
-                              setEditData({ ...editData, status: e.target.value })
+                              setEditData({
+                                ...editData,
+                                status: e.target.value,
+                              })
                             }
                             className="w-full px-3 py-2 border rounded dark:bg-gray-800 dark:text-white"
                           >
-                            {["requested", "accepted", "pending", "resolved"].map(
-                              (st) => (
-                                <option key={st} value={st}>
-                                  {st}
-                                </option>
-                              )
-                            )}
+                            {[
+                              "requested",
+                              "accepted",
+                              "pending",
+                              "resolved",
+                              "cancelled",
+                            ].map((st) => (
+                              <option key={st} value={st}>
+                                {st}
+                              </option>
+                            ))}
                           </select>
                         ) : (
                           <Badge color={getStatusColor(r.status)}>
@@ -340,7 +353,10 @@ export default function TowRequestsTable() {
                           <OperatorDropdown
                             value={editData.assignedOperatorId}
                             onChange={(id) =>
-                              setEditData({ ...editData, assignedOperatorId: id })
+                              setEditData({
+                                ...editData,
+                                assignedOperatorId: id,
+                              })
                             }
                             companyId={currentUser?.uid}
                           />
@@ -358,7 +374,10 @@ export default function TowRequestsTable() {
                             type="number"
                             value={editData.etaMinutes}
                             onChange={(e) =>
-                              setEditData({ ...editData, etaMinutes: e.target.value })
+                              setEditData({
+                                ...editData,
+                                etaMinutes: e.target.value,
+                              })
                             }
                             className="w-full px-3 py-2 border rounded dark:bg-gray-800 dark:text-white"
                           />
@@ -375,7 +394,10 @@ export default function TowRequestsTable() {
                           <textarea
                             value={editData.notes}
                             onChange={(e) =>
-                              setEditData({ ...editData, notes: e.target.value })
+                              setEditData({
+                                ...editData,
+                                notes: e.target.value,
+                              })
                             }
                             rows={1}
                             className="w-full px-3 py-2 border rounded dark:bg-gray-800 dark:text-white"

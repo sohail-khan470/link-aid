@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
-import { Timestamp } from "firebase/firestore";
+import { collection, query, where, onSnapshot, Timestamp } from "firebase/firestore";
 import { db } from "../../firebase";
 
 type Mode = "hourly" | "weekly" | "monthly";
@@ -17,13 +16,33 @@ export function useActionsLogStats(mode: Mode, year: number) {
   useEffect(() => {
     const logsRef = collection(db, "actions_log");
 
-    const startOfYear = Timestamp.fromDate(new Date(year, 0, 1));
-    const endOfYear = Timestamp.fromDate(new Date(year + 1, 0, 1));
+    const now = new Date();
+    let startDate: Date;
+    let endDate: Date;
+
+    if (mode === "hourly") {
+      // Current day (00:00 → 23:59)
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+    } else if (mode === "weekly") {
+      // Start of current week (Sunday) → end of week (next Sunday)
+      const day = now.getDay(); // 0 = Sunday
+      startDate = new Date(now);
+      startDate.setDate(now.getDate() - day);
+      startDate.setHours(0, 0, 0, 0);
+
+      endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 7);
+    } else {
+      // Current month
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    }
 
     const q = query(
       logsRef,
-      where("timestamp", ">=", startOfYear),
-      where("timestamp", "<", endOfYear)
+      where("timestamp", ">=", Timestamp.fromDate(startDate)),
+      where("timestamp", "<", Timestamp.fromDate(endDate))
     );
 
     const unsubscribe = onSnapshot(
@@ -31,7 +50,10 @@ export function useActionsLogStats(mode: Mode, year: number) {
       (snapshot) => {
         const roleBuckets: Record<string, number[]> = {};
         const bucketCount =
-          mode === "monthly" ? 12 : mode === "weekly" ? 4 : 24; // ✅ 24 for hourly
+          mode === "monthly" ? new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() // days in month
+          : mode === "weekly" ? 7
+          : 24; // hourly
+
         const initArray = Array(bucketCount).fill(0);
 
         snapshot.forEach((doc) => {
@@ -46,12 +68,11 @@ export function useActionsLogStats(mode: Mode, year: number) {
 
           let index = 0;
           if (mode === "monthly") {
-            index = date.getMonth(); // 0-11
+            index = date.getDate() - 1; // day of month (0-based)
           } else if (mode === "weekly") {
-            const week = Math.ceil(date.getDate() / 7);
-            index = Math.min(week - 1, 3); // ensure 0–3
+            index = date.getDay(); // 0 = Sunday
           } else if (mode === "hourly") {
-            index = date.getHours(); // ✅ full 24-hour range
+            index = date.getHours(); // 0–23
           }
 
           roleBuckets[role][index] += 1;

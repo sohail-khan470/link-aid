@@ -31,20 +31,20 @@ export function useSignIn() {
 
     const userData = userSnap.data();
     const role = userData?.role ?? "unknown";
-    const userName = userData?.fullName ?? "Unknown";
+    // const userName = userData?.fullName ?? "Unknown";
 
     await updateDoc(userRef, { lastLogin: serverTimestamp() });
 
-    // ✅ Exclude super_admin from logging
-    if (role !== "super_admin") {
-      await logAction({
-        userId: uid,
-        userName,
-        role,
-        action: "Sign In",
-        description: `${userName} signed into the system.`,
-      });
-    }
+    // // ✅ Exclude super_admin from logging
+    // if (role !== "super_admin") {
+    //   await logAction({
+    //     userId: uid,
+    //     userName,
+    //     role,
+    //     action: "Sign In",
+    //     description: `${userName} signed into the system.`,
+    //   });
+    // }
 
     const roleRoutes: Record<string, string> = {
       super_admin: "/home",

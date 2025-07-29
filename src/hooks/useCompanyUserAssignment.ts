@@ -227,6 +227,7 @@ export const useStaffAssignment = () => {
         isVerified: newIsVerified,
         updatedAt: serverTimestamp(),
       });
+  
 
       // Step 4: Get updated target user info for logging
       const targetUserSnap = await getDoc(doc(db, "users", targetUserId));
