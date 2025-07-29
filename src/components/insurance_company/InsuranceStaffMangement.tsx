@@ -111,11 +111,11 @@ export default function InsuranceStaffManagement() {
                 onChange={(e) => setSelectedRole(e.target.value)}
                 className="w-full p-2 border rounded dark:bg-white/10 dark:border-white/20 dark:text-white"
               >
-                <option value="driver" className="dark:bg-gray-700">
-                  Driver
+                <option value="insurer" className="dark:bg-gray-700">
+                  Insurer
                 </option>
-                <option value="dispatcher" className="dark:bg-gray-700">
-                  Dispatcher
+                <option value="unassigned" className="dark:bg-gray-700">
+                  Unassigned
                 </option>
               </select>
 
@@ -179,18 +179,21 @@ export default function InsuranceStaffManagement() {
                             value={editRole}
                             onChange={(e) => setEditRole(e.target.value)}
                           >
-                            <option value="driver" className="dark:bg-gray-800">
-                              Driver
-                            </option>
                             <option
-                              value="dispatcher"
+                              value="insurer"
                               className="dark:bg-gray-800"
                             >
-                              Dispatcher
+                              Insurer
+                            </option>
+                            <option
+                              value="unassigned"
+                              className="dark:bg-gray-800"
+                            >
+                              Unassigned
                             </option>
                           </select>
                         ) : (
-                          staff.role
+                          staff?.role
                         )}
                       </TableCell>
 

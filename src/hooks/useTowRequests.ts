@@ -4,10 +4,13 @@ import {
   doc,
   getDoc,
   getDocs,
+  updateDoc,
   Timestamp,
+  serverTimestamp,
 } from "firebase/firestore";
 import { db, auth } from "../../firebase";
-import { logAction } from "../utils/logAction";
+import { toast } from "react-toastify";
+import { logAction } from "../utils/logAction"; // ✅ action logger
 
 type TowRequestWithNames = {
   id: string;
@@ -17,7 +20,7 @@ type TowRequestWithNames = {
     latitude: number;
     longitude: number;
   };
-  status: "requested" | "accepted" | "pending" | "resolved";
+  status: "requested" | "accepted" | "pending" | "resolved" | "cancelled";
   matchedOperatorId?: string | null;
   etaMinutes?: number | null;
   priorityScore?: number | null;
@@ -41,36 +44,17 @@ export function useTowRequests() {
       const currentUser = auth.currentUser;
       if (!currentUser) return;
 
-      const currentUserSnap = await getDoc(doc(db, "users", currentUser.uid));
-      const currentUserData = currentUserSnap.data();
-      const currentUserRole = currentUserData?.role;
-
-      // 🔒 Log view if not super admin
-      if (currentUserRole !== "super_admin") {
-        await logAction({
-          userId: currentUser.uid,
-          userName: currentUserData?.fullName ?? "Unknown",
-          role: currentUserRole,
-          action: "View Tow Requests",
-          description: `${
-            currentUserData?.fullName ?? "User"
-          } viewed tow requests list`,
-        });
-      }
-
       const snapshot = await getDocs(collection(db, "tow_requests"));
       const data = await Promise.all(
         snapshot.docs.map(async (docSnap) => {
           const tow = docSnap.data();
 
-          // 👤 Get civilian/responder info
+          // 👤 Get civilian info
           const userSnap = await getDoc(doc(db, "users", tow.userId));
           if (!userSnap.exists()) return null;
 
           const user = userSnap.data();
           const civilianRole = user?.role || "unknown";
-
-          // ✅ Only allow civilian or responder roles
           if (civilianRole !== "civilian" && civilianRole !== "responder") {
             return null;
           }
@@ -104,19 +88,124 @@ export function useTowRequests() {
               tow.requestedAt instanceof Timestamp ? tow.requestedAt : null,
             civilianName,
             operatorName,
-            role: civilianRole, // ✅ Injected role
+            role: civilianRole,
           } as TowRequestWithNames;
         })
       );
 
-      // Remove any nulls from the map (filtered requests)
-      const filteredData = data.filter(Boolean) as TowRequestWithNames[];
-      setRequests(filteredData);
+      setRequests(data.filter(Boolean) as TowRequestWithNames[]);
     } catch (err) {
       console.error("Error loading tow requests:", err);
       setError("Failed to load tow requests");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ✅ Helper to get current user info
+  const getCurrentUserInfo = async () => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) throw new Error("Not authenticated");
+
+    const currentUserRef = doc(db, "users", currentUser.uid);
+    const currentUserSnap = await getDoc(currentUserRef);
+    const currentUserData = currentUserSnap.data();
+
+    return {
+      uid: currentUser.uid,
+      name: currentUserData?.fullName ?? "Unknown",
+      role: currentUserData?.role ?? "unknown",
+    };
+  };
+
+  // ✅ Update tow request status
+  const updateTowRequestStatus = async (
+    requestId: string,
+    newStatus: TowRequestWithNames["status"]
+  ) => {
+    try {
+      const { uid, name, role } = await getCurrentUserInfo();
+
+      const requestRef = doc(db, "tow_requests", requestId);
+      await updateDoc(requestRef, {
+        status: newStatus,
+        updatedAt: serverTimestamp(),
+      });
+
+      await logAction({
+        userId: uid,
+        userName: name,
+        role,
+        action: "Update Tow Request Status",
+        description: `Changed status of tow request to ${newStatus}`,
+      });
+
+      toast.success(`Tow request marked as ${newStatus}`);
+      fetchData();
+    } catch (error) {
+      console.error("Status update failed:", error);
+      toast.error("Failed to update tow request status.");
+    }
+  };
+
+  // ✅ Assign operator
+  const assignOperatorToRequest = async (
+    requestId: string,
+    operatorId: string
+  ) => {
+    try {
+      const { uid, name, role } = await getCurrentUserInfo();
+
+      const requestRef = doc(db, "tow_requests", requestId);
+      await updateDoc(requestRef, {
+        matchedOperatorId: operatorId,
+        status: "accepted",
+        updatedAt: serverTimestamp(),
+      });
+
+      const opSnap = await getDoc(doc(db, "users", operatorId));
+      const opName = opSnap.exists() ? opSnap.data()?.fullName ?? "Unknown" : "Unknown";
+
+      await logAction({
+        userId: uid,
+        userName: name,
+        role,
+        action: "Assign Operator",
+        description: `Assigned operator ${opName} to tow request`,
+      });
+
+      toast.success("Operator assigned successfully.");
+      fetchData();
+    } catch (error) {
+      console.error("Operator assignment failed:", error);
+      toast.error("Failed to assign operator.");
+    }
+  };
+
+  // ✅ Cancel tow request
+  const cancelTowRequest = async (requestId: string) => {
+    try {
+      const { uid, name, role } = await getCurrentUserInfo();
+
+      const requestRef = doc(db, "tow_requests", requestId);
+      await updateDoc(requestRef, {
+        status: "cancelled",
+        updatedAt: serverTimestamp(),
+      });
+
+      await logAction({
+        userId: uid,
+        userName: name,
+        role,
+        action: "Cancel Tow Request",
+        description: `Cancelled tow request ${requestId}`,
+      });
+
+      toast.success("Tow request cancelled.");
+      fetchData();
+    } catch (error) {
+      console.error("Cancel failed:", error);
+      toast.error("Failed to cancel tow request.");
     }
   };
 
@@ -129,5 +218,8 @@ export function useTowRequests() {
     loading,
     error,
     refetch: fetchData,
+    updateTowRequestStatus,
+    assignOperatorToRequest,
+    cancelTowRequest,
   };
 }
