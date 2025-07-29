@@ -37,6 +37,7 @@ import ActionLogPage from "./pages/ActionLogsPage/ActionLogPage";
 import InsuranceStaffPage from "./pages/InsuranceCompany/InsuranceStaffPage";
 import IncidentsReportsPage from "./pages/IncidentsReportsPage/IncidentsReportsPage";
 import ResetPassword from "./components/auth/ResetPassword";
+import { useWatchVerification } from "./hooks/useWatchVerification";
 
 // Types
 interface FirebaseUserData {
@@ -45,6 +46,7 @@ interface FirebaseUserData {
 }
 
 export default function App() {
+    useWatchVerification();
   const [, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [, setRole] = useState("");

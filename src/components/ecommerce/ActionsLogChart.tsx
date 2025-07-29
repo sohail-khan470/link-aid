@@ -16,23 +16,33 @@ export default function ActionsLogChart() {
 
   const { data: chartData, loading } = useActionsLogStats(mode, selectedYear);
 
-  // ✅ Generate categories dynamically based on mode
-  const now = new Date();
   let categories: string[] = [];
 
   if (mode === "hourly") {
-    // 24 hours for today
+    // Today’s 24 hours
     categories = Array.from(
       { length: 24 },
       (_, i) => `${i.toString().padStart(2, "0")}:00`
     );
   } else if (mode === "weekly") {
-    // Current week days (Sun → Sat)
-    categories = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    // Current month split into 4 weeks
+    categories = ["Week 1", "Week 2", "Week 3", "Week 4"];
   } else if (mode === "monthly") {
-    // Days of current month
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    categories = Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
+    // 12 months of current year
+    categories = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
   }
 
   const hasData = chartData.some((series) =>
@@ -57,9 +67,7 @@ export default function ActionsLogChart() {
         stops: [0, 90, 100],
       },
     },
-    legend: {
-      show: false,
-    },
+    legend: { show: false },
     grid: {
       xaxis: { lines: { show: false } },
       yaxis: { lines: { show: true } },
@@ -76,10 +84,7 @@ export default function ActionsLogChart() {
     },
     yaxis: {
       labels: {
-        style: {
-          fontSize: "12px",
-          colors: ["#6B7280"],
-        },
+        style: { fontSize: "12px", colors: ["#6B7280"] },
         formatter: (val) => Math.floor(val).toString(),
       },
       forceNiceScale: true,
