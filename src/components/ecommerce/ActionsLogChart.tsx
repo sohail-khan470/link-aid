@@ -16,28 +16,24 @@ export default function ActionsLogChart() {
 
   const { data: chartData, loading } = useActionsLogStats(mode, selectedYear);
 
-  const categories =
-    mode === "monthly"
-      ? [
-          "Jan",
-          "Feb",
-          "Mar",
-          "Apr",
-          "May",
-          "Jun",
-          "Jul",
-          "Aug",
-          "Sep",
-          "Oct",
-          "Nov",
-          "Dec",
-        ]
-      : mode === "weekly"
-      ? ["Week 1", "Week 2", "Week 3", "Week 4"]
-      : Array.from(
-          { length: 24 },
-          (_, i) => `${i.toString().padStart(2, "0")}:00`
-        );
+  // ✅ Generate categories dynamically based on mode
+  const now = new Date();
+  let categories: string[] = [];
+
+  if (mode === "hourly") {
+    // 24 hours for today
+    categories = Array.from(
+      { length: 24 },
+      (_, i) => `${i.toString().padStart(2, "0")}:00`
+    );
+  } else if (mode === "weekly") {
+    // Current week days (Sun → Sat)
+    categories = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  } else if (mode === "monthly") {
+    // Days of current month
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    categories = Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
+  }
 
   const hasData = chartData.some((series) =>
     series.data.some((val) => val > 0)
@@ -47,7 +43,7 @@ export default function ActionsLogChart() {
     chart: {
       fontFamily: "Outfit, sans-serif",
       height: 310,
-      type: "area", // ✅ area for gradient
+      type: "area",
       toolbar: { show: false },
     },
     colors: ["#465FFF", "#00B8D9", "#925FE2", "#E48A2C", "#DB2777", "#10B981"],
@@ -58,22 +54,11 @@ export default function ActionsLogChart() {
         shadeIntensity: 0.6,
         opacityFrom: 0.55,
         opacityTo: 0,
-        stops: [0, 90, 100], // ✅ ensures smooth fade-out
+        stops: [0, 90, 100],
       },
     },
     legend: {
       show: false,
-      fontSize: "14px",
-      labels: { colors: "#6B7280" },
-      formatter: (seriesName) => {
-        const map: Record<string, string> = {
-          civilian: "Civilian",
-          tow_operator: "Tow Operator",
-          insurer: "Insurer",
-          responder: "Responder",
-        };
-        return map[seriesName] || seriesName;
-      },
     },
     grid: {
       xaxis: { lines: { show: false } },
@@ -136,7 +121,7 @@ export default function ActionsLogChart() {
             <Chart
               options={options}
               series={chartData}
-              type="area" // ✅ same style as StatisticsChart
+              type="area"
               height={310}
             />
           ) : (
