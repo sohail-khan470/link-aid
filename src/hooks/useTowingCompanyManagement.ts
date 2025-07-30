@@ -99,21 +99,31 @@ export const useTowingCompanyManagement = () => {
 
     try {
       if (currentCompany) {
+        // ✅ Update towing company document
         await updateDoc(doc(db, "towing_companies", currentCompany.id), {
           name: formData.name,
           email: formData.email,
-          phoneNumber: formData.phoneNumber,
-          address: formData.address,
+          phoneNumber: formData.phoneNumber || "",
+          address: formData.address || "",
           region: formData.region,
         });
 
-        await updateDoc(doc(db, "users", currentCompany.id), {
-          fullName: formData.name,
-          email: formData.email,
-          phone: formData.phoneNumber || "",
-          location: formData.address || "",
-          updatedAt: Timestamp.now(),
-        });
+        // ✅ Use adminId if it exists, fallback to company.id
+        const userId = currentCompany.adminId || currentCompany.id;
+        const userRef = doc(db, "users", userId);
+
+        // ✅ Merge so it won't error if doc missing
+        await setDoc(
+          userRef,
+          {
+            fullName: formData.name,
+            email: formData.email,
+            phone: formData.phoneNumber || "",
+            location: formData.address || "",
+            updatedAt: Timestamp.now(),
+          },
+          { merge: true }
+        );
 
         setTowingCompanies((prev) =>
           prev.map((c) =>
@@ -123,6 +133,7 @@ export const useTowingCompanyManagement = () => {
 
         toast.success("Towing company updated successfully");
       } else {
+        // ✅ New towing company
         if (!formData.password) {
           toast.error("Password is required for new towing company");
           return false;
@@ -135,8 +146,10 @@ export const useTowingCompanyManagement = () => {
         );
         const newUser = userCredential.user;
         await sendEmailVerification(newUser);
+
         const createdAt = Timestamp.now();
 
+        // ✅ Create user doc
         await setDoc(doc(db, "users", newUser.uid), {
           createdAt,
           email: formData.email,
@@ -150,6 +163,7 @@ export const useTowingCompanyManagement = () => {
           verifiedAt: null,
         });
 
+        // ✅ Create towing company doc
         await setDoc(doc(db, "towing_companies", newUser.uid), {
           name: formData.name,
           email: formData.email,
@@ -176,7 +190,7 @@ export const useTowingCompanyManagement = () => {
 
       return true;
     } catch (err) {
-      console.error(err);
+      console.error("🔥 Error in towing handleSubmit:", err);
       setError("Operation failed");
       toast.error("Operation failed");
       return false;

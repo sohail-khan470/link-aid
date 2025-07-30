@@ -94,119 +94,127 @@ export const useInsuranceCompany = () => {
     }
   };
 
-  const handleSubmit = async (
-    formData: {
-      companyName: string;
-      contactEmail: string;
-      region: string;
-      password?: string;
-      phone?: string;
-      location?: string;
-      language?: string;
-    },
-    currentCompany: any | null
-  ) => {
-    setFormLoading(true);
+const handleSubmit = async (
+  formData: {
+    companyName: string;
+    contactEmail: string;
+    region: string;
+    password?: string;
+    phone?: string;
+    location?: string;
+    language?: string;
+  },
+  currentCompany: any | null
+) => {
+  setFormLoading(true);
 
-    try {
-      if (currentCompany) {
-        // ✅ Update existing company document
-        await updateDoc(doc(db, "insurance_company", currentCompany.id), {
-          companyName: formData.companyName,
-          contactEmail: formData.contactEmail,
-          region: formData.region,
-        });
+  try {
+    if (currentCompany) {
+      // ✅ Update existing insurance company document
+      await updateDoc(doc(db, "insurance_company", currentCompany.id), {
+        companyName: formData.companyName,
+        contactEmail: formData.contactEmail,
+        region: formData.region,
+      });
 
-        // ✅ Update related user document as well
-        await updateDoc(doc(db, "users", currentCompany.id), {
+      // ✅ Update related user document (using adminId if available)
+      const userId = currentCompany.adminId || currentCompany.id;
+      const userRef = doc(db, "users", userId);
+
+      await setDoc(
+        userRef,
+        {
           fullName: formData.companyName,
           email: formData.contactEmail,
           phone: formData.phone || "",
           location: formData.location || "",
           language: formData.language || "en",
           updatedAt: Timestamp.now(),
-        });
+        },
+        { merge: true } // prevents "No document to update"
+      );
 
-        setInsuranceCompanies((prev) =>
-          prev.map((company) =>
-            company.id === currentCompany.id
-              ? { ...company, ...formData }
-              : company
-          )
-        );
-        toast.success("Company updated successfully");
-      } else {
-        // ✅ Create new
-        if (!formData.password) {
-          toast.error("Password is required for new companies");
-          return false;
-        }
+      setInsuranceCompanies((prev) =>
+        prev.map((company) =>
+          company.id === currentCompany.id
+            ? { ...company, ...formData }
+            : company
+        )
+      );
+      toast.success("Company updated successfully");
+    } else {
+      // ✅ Create new company + user
+      if (!formData.password) {
+        toast.error("Password is required for new companies");
+        return false;
+      }
 
-        const userCredential = await createUserWithEmailAndPassword(
-          secondaryAuth,
-          formData.contactEmail,
-          formData.password
-        );
+      const userCredential = await createUserWithEmailAndPassword(
+        secondaryAuth,
+        formData.contactEmail,
+        formData.password
+      );
 
-        const newUser = userCredential.user;
-        await sendEmailVerification(newUser);
+      const newUser = userCredential.user;
+      await sendEmailVerification(newUser);
 
-        const createdAt = Timestamp.now();
+      const createdAt = Timestamp.now();
 
-        // ✅ Create user document with phone & location
-        await setDoc(doc(db, "users", newUser.uid), {
-          createdAt,
-          email: formData.contactEmail,
-          fullName: formData.companyName,
-          isVerified: false,
-          language: formData.language || "en",
-          lastLogin: null,
-          location: formData.location || "",
-          phone: formData.phone || "",
-          role: "insurer",
-          verifiedAt: null,
-        });
+      // ✅ Create user document
+      await setDoc(doc(db, "users", newUser.uid), {
+        createdAt,
+        email: formData.contactEmail,
+        fullName: formData.companyName,
+        isVerified: false,
+        language: formData.language || "en",
+        lastLogin: null,
+        location: formData.location || "",
+        phone: formData.phone || "",
+        role: "insurer",
+        verifiedAt: null,
+      });
 
-        // ✅ Create insurance company document
-        await setDoc(doc(db, "insurance_company", newUser.uid), {
+      // ✅ Create insurance company document
+      await setDoc(doc(db, "insurance_company", newUser.uid), {
+        companyName: formData.companyName,
+        contactEmail: formData.contactEmail,
+        region: formData.region,
+        createdAt,
+        activeClaims: [],
+        adminId: newUser.uid,
+      });
+
+      setInsuranceCompanies((prev) => [
+        ...prev,
+        {
+          id: newUser.uid,
           companyName: formData.companyName,
           contactEmail: formData.contactEmail,
           region: formData.region,
           createdAt,
           activeClaims: [],
           adminId: newUser.uid,
-        });
+          isVerified: false,
+          phone: formData.phone || "",
+          location: formData.location || "",
+        },
+      ]);
 
-        setInsuranceCompanies((prev) => [
-          ...prev,
-          {
-            id: newUser.uid,
-            companyName: formData.companyName,
-            contactEmail: formData.contactEmail,
-            region: formData.region,
-            createdAt,
-            activeClaims: [],
-            adminId: newUser.uid,
-            isVerified: false,
-            phone: formData.phone || "",
-            location: formData.location || "",
-          },
-        ]);
-
-        toast.success(
-          "Company and user added successfully. Verification email sent."
-        );
-      }
-      return true;
-    } catch (error) {
-      console.error(error);
-      setError("Operation failed");
-      toast.error("Operation failed");
-      return false;
-    } finally {
-      setFormLoading(false);
+      toast.success(
+        "Company and user added successfully. Verification email sent."
+      );
     }
-  };
+    return true;
+  } catch (error) {
+    console.error("🔥 Error in handleSubmit:", error);
+    setError("Operation failed");
+    toast.error("Operation failed");
+    return false;
+  } finally {
+    setFormLoading(false);
+  }
+};
+
 
   return {
     insuranceCompanies,

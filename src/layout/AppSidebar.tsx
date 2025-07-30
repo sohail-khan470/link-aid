@@ -1,27 +1,23 @@
 import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
-import {
-  ChevronDownIcon,
-  HorizontaLDots,
-  ListIcon,
-  PlugInIcon,
-  UserCircleIcon,
-} from "../icons";
-import { FiHome } from "react-icons/fi";
+import { ChevronDownIcon, HorizontaLDots, PlugInIcon } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
 import { auth, db } from "../../firebase";
 import {
-  AlarmCheck,
-  BuildingIcon,
+  AlertTriangle,
+  Building2,
+  Car,
   FileText,
-  Hourglass,
+  History,
+  Home,
   LayoutDashboard,
-  ListTodo,
-  ShieldIcon,
-  ShieldUser,
+  ShieldCheck,
+  Truck,
+  UserCheck,
+  Users,
 } from "lucide-react";
 
 type NavItem = {
@@ -39,12 +35,12 @@ const superAdminNavItems: NavItem[] = [
     path: "/admin/home",
   },
   {
-    icon: <ShieldIcon />,
+    icon: <ShieldCheck />,
     name: "Insurance Companies",
     path: "/admin/insurance-management",
   },
   {
-    icon: <BuildingIcon />,
+    icon: <Truck />,
     name: "Towing Companies",
     path: "/admin/towing-management",
   },
@@ -54,24 +50,24 @@ const superAdminNavItems: NavItem[] = [
     path: "/admin/insurance-claims",
   },
   {
-    icon: <ShieldUser />,
+    icon: <UserCheck />,
     name: "Responders",
     path: "/responders",
   },
 
   {
-    icon: <AlarmCheck />,
+    icon: <AlertTriangle />,
     name: "Incidents Reports",
     path: "/admin/incidents-reports",
   },
 
   {
     name: "Tow Requests",
-    icon: <Hourglass />,
+    icon: <Car />,
     path: "/admin/tow-requests",
   },
   {
-    icon: <ListTodo />,
+    icon: <History />,
     name: "Action-Logs",
     path: "/admin/action-logs",
   },
@@ -79,46 +75,46 @@ const superAdminNavItems: NavItem[] = [
 
 const towingCompanyNavItems: NavItem[] = [
   {
-    icon: <FiHome />,
+    icon: <Home />,
     name: "Home",
     path: "/home",
   },
   {
-    icon: <UserCircleIcon />,
+    icon: <Building2 />,
     name: "Company Profile",
     path: "/profile",
   },
   {
-    icon: <UserCircleIcon />,
+    icon: <Users />,
     name: "Tow Operators",
     path: "/staff",
   },
   {
     name: "Towing Requests",
-    icon: <ListIcon />,
+    icon: <Truck />,
     path: "/towing/requests",
   },
 ];
 
 const insurerCompanyNavItems: NavItem[] = [
   {
-    icon: <FiHome />,
+    icon: <Home />,
     name: "Home",
     path: "/home",
   },
   {
-    icon: <UserCircleIcon />,
+    icon: <Building2 />,
     name: "Company Profile",
     path: "/profile",
   },
   {
-    icon: <UserCircleIcon />,
+    icon: <Users />,
     name: "Insurers",
     path: "/insurer/staff",
   },
   {
     name: "Claims",
-    icon: <ListIcon />,
+    icon: <FileText />,
     path: "/insurer/claims",
   },
 ];
@@ -127,9 +123,7 @@ const othersItems: NavItem[] = [
   {
     icon: <PlugInIcon />,
     name: "Authentication",
-    subItems: [
-      { name: "Sign In", path: "/signin" },
-    ],
+    subItems: [{ name: "Sign In", path: "/signin" }],
   },
 ];
 
