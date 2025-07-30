@@ -1,5 +1,4 @@
 import { useState, useMemo } from "react";
-import { FiPlus, FiEdit2, FiTrash2, FiSearch } from "react-icons/fi";
 import {
   Table,
   TableBody,
@@ -7,117 +6,107 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import Badge from "../ui/badge/Badge";
 import LoadingSpinner from "../ui/LoadingSpinner";
 import ComponentCard from "../common/ComponentCard";
-import useTowingCompanyManagement from "../../hooks/useTowingCompanyManagement";
-import { confirm } from "../../utils/confirm";
+import { FiPlus, FiEdit2, FiTrash2, FiSearch } from "react-icons/fi";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
+import { Timestamp } from "firebase/firestore";
 import { Modal } from "../ui/modal";
 import Pagination from "../ui/Pagination";
+import { useTowingCompanyManagement } from "../../hooks/useTowingCompanyManagement";
 
 export default function TowingCompanyManagement() {
   const {
-    companies = [],
+    towingCompanies = [],
     loading,
-    createCompany,
-    updateCompany,
-    deleteCompany,
+    formLoading,
+    handleDelete,
+    handleSubmit,
   } = useTowingCompanyManagement();
 
   const [showForm, setShowForm] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<any>(null);
-  const [formData, setFormData] = useState({
+  const [currentCompany, setCurrentCompany] = useState<any | null>(null);
+  const [formData, setFormData] = useState<{
+    name: string;
+    email: string;
+    phoneNumber?: string;
+    address?: string;
+    region: string;
+    password?: string;
+    createdAt?: Timestamp;
+  }>({
     name: "",
     email: "",
     phoneNumber: "",
     address: "",
     region: "",
-    description: "",
+    password: "",
+    createdAt: undefined,
   });
 
-  // ✅ Region Filter State
+  // Region filter & pagination
   const [regionFilter, setRegionFilter] = useState("");
-
-  // ✅ Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
-  // ✅ Filter companies by region
-  const filteredCompanies = useMemo(() => {
-    return companies.filter((company) =>
-      company.region?.toLowerCase().includes(regionFilter.toLowerCase())
-    );
-  }, [companies, regionFilter]);
+  const filtered = useMemo(
+    () =>
+      towingCompanies.filter((c) =>
+        c.region?.toLowerCase().includes(regionFilter.toLowerCase())
+      ),
+    [towingCompanies, regionFilter]
+  );
 
-  const totalPages = Math.ceil(filteredCompanies.length / itemsPerPage);
-  const paginatedCompanies = useMemo(() => {
-    return filteredCompanies.slice(
-      (currentPage - 1) * itemsPerPage,
-      currentPage * itemsPerPage
-    );
-  }, [filteredCompanies, currentPage]);
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = useMemo(
+    () =>
+      filtered.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+      ),
+    [filtered, currentPage]
+  );
 
-  // ✅ Handlers
-  const handleEdit = (company: any) => {
-    setSelectedCompany(company);
-    setFormData({
-      name: company.name || "",
-      email: company.email || "",
-      phoneNumber: company.phoneNumber || "",
-      address: company.address || "",
-      region: company.region || "",
-      description: company.description || "",
-    });
-    setShowForm(true);
-  };
-
-  const handleAddNew = () => {
-    setSelectedCompany(null);
+  // Handlers
+  const handleAdd = () => {
+    setCurrentCompany(null);
     setFormData({
       name: "",
       email: "",
       phoneNumber: "",
       address: "",
       region: "",
-      description: "",
+      password: "",
+      createdAt: Timestamp.now(),
     });
     setShowForm(true);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleEdit = (company: any) => {
+    setCurrentCompany(company);
+    setFormData({
+      name: company.name || "",
+      email: company.email || "",
+      phoneNumber: company.phoneNumber,
+      address: company.address,
+      region: company.region,
+      password: "",
+      createdAt: company.createdAt,
+    });
+    setShowForm(true);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((p) => ({ ...p, [name]: value }));
   };
 
-  const handleFormSubmit = async (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    try {
-      if (selectedCompany) {
-        await updateCompany(selectedCompany.id, formData);
-      } else {
-        await createCompany(formData);
-      }
-      setShowForm(false);
-    } catch (error) {
-      console.error("Error saving company:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    const confirmed = await confirm(
-      "Are you sure you want to delete this company?"
-    );
-    if (!confirmed) return;
-    try {
-      await deleteCompany(id);
-    } catch (error) {
-      console.error("Delete failed", error);
-    }
+    const ok = await handleSubmit(formData, currentCompany);
+    if (ok) setShowForm(false);
   };
 
   return (
@@ -126,7 +115,6 @@ export default function TowingCompanyManagement() {
         title="Towing Companies"
         button={
           <div className="flex items-center gap-3">
-            {/* 🔎 Region Search Input */}
             <div className="relative">
               <input
                 type="text"
@@ -134,15 +122,14 @@ export default function TowingCompanyManagement() {
                 value={regionFilter}
                 onChange={(e) => {
                   setRegionFilter(e.target.value);
-                  setCurrentPage(1); // reset to first page on new filter
+                  setCurrentPage(1);
                 }}
                 className="border rounded-lg pl-10 pr-3 py-2 text-sm dark:bg-gray-800 dark:text-white"
               />
               <FiSearch className="absolute left-3 top-2.5 text-gray-400" />
             </div>
-
             <button
-              onClick={handleAddNew}
+              onClick={handleAdd}
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
             >
               <FiPlus /> Add
@@ -154,7 +141,7 @@ export default function TowingCompanyManagement() {
           <div className="p-4 flex justify-center">
             <LoadingSpinner />
           </div>
-        ) : filteredCompanies.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-center">
             <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-full mb-4">
               <FiSearch className="h-10 w-10 text-gray-400 dark:text-gray-500" />
@@ -165,7 +152,6 @@ export default function TowingCompanyManagement() {
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               Try adjusting the region filter or add a new company.
             </p>
-
             <button
               onClick={() => {
                 setRegionFilter("");
@@ -188,50 +174,55 @@ export default function TowingCompanyManagement() {
                         "Email",
                         "Phone",
                         "Region",
-                        "Address",
+                        "Verified",
                         "Actions",
-                      ].map((heading) => (
+                      ].map((h) => (
                         <TableCell
-                          key={heading}
+                          key={h}
                           isHeader
                           className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400 uppercase"
                         >
-                          {heading}
+                          {h}
                         </TableCell>
                       ))}
                     </TableRow>
                   </TableHeader>
                   <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                    {paginatedCompanies.map((company) => (
+                    {paginated.map((c) => (
                       <TableRow
-                        key={company.id}
+                        key={c.id}
                         className="hover:bg-blue-50 dark:hover:bg-white/5 transition"
                       >
                         <TableCell className="py-3 px-5 text-gray-800 dark:text-gray-400">
-                          {company.name}
+                          {c.name}
                         </TableCell>
-                        <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
-                          {company.email}
+                        <TableCell className="py-3 px-5 text-gray-800 dark:text-gray-400">
+                          {c.email}
                         </TableCell>
-                        <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
-                          {company.phoneNumber}
+                        <TableCell className="py-3 px-5 text-gray-800 dark:text-gray-400">
+                          {c.phoneNumber}
                         </TableCell>
-                        <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
-                          {company.region}
+                        <TableCell className="py-3 px-5 text-gray-800 dark:text-gray-400">
+                          {c.region}
                         </TableCell>
-                        <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
-                          {company.address}
+                        <TableCell className="py-3 px-5 text-gray-800 dark:text-gray-400">
+                          <Badge
+                            size="sm"
+                            color={c.isVerified ? "success" : "danger"}
+                          >
+                            {c.isVerified ? "Verified" : "Unverified"}
+                          </Badge>
                         </TableCell>
-                        <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
+                        <TableCell className="py-3 px-5">
                           <div className="flex gap-2">
                             <button
-                              onClick={() => handleEdit(company)}
+                              onClick={() => handleEdit(c)}
                               className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400"
                             >
                               <FiEdit2 size={16} />
                             </button>
                             <button
-                              onClick={() => handleDelete(company.id)}
+                              onClick={() => handleDelete(c.id)}
                               className="text-red-500 hover:text-red-700 dark:text-red-400"
                             >
                               <FiTrash2 size={16} />
@@ -245,7 +236,6 @@ export default function TowingCompanyManagement() {
               </div>
             </div>
 
-            {/* ✅ Pagination */}
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
@@ -255,14 +245,13 @@ export default function TowingCompanyManagement() {
         )}
       </ComponentCard>
 
-      {/* ✅ Modal for Add/Edit */}
       {showForm && (
         <Modal isOpen onClose={() => setShowForm(false)}>
           <div className="relative w-full">
-            <div className="overflow-hidden rounded-2xl shadow-2xl bg-white dark:bg-gray-800 transition-all duration-300 scale-100">
+            <div className="overflow-hidden rounded-2xl shadow-2xl bg-white dark:bg-gray-800 transition-all duration-300">
               <ComponentCard
                 title={
-                  selectedCompany ? "Edit Towing Company" : "Add Towing Company"
+                  currentCompany ? "Edit Towing Company" : "Add Towing Company"
                 }
                 button={
                   <button
@@ -273,69 +262,52 @@ export default function TowingCompanyManagement() {
                   </button>
                 }
               >
-                <form onSubmit={handleFormSubmit} className="space-y-5">
-                  <div>
-                    <Label htmlFor="name">Company Name</Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      placeholder="e.g., Fast Tow Inc."
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      placeholder="example@fasttow.com"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="phoneNumber">Phone Number</Label>
-                    <Input
-                      id="phoneNumber"
-                      name="phoneNumber"
-                      value={formData.phoneNumber}
-                      onChange={handleInputChange}
-                      placeholder="+1 123 456 7890"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="address">Address</Label>
-                    <Input
-                      id="address"
-                      name="address"
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      placeholder="123 Main St, City"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="region">Region</Label>
-                    <Input
-                      id="region"
-                      name="region"
-                      value={formData.region}
-                      onChange={handleInputChange}
-                      placeholder="East Region"
-                    />
-                  </div>
+                <form onSubmit={onSubmit} className="space-y-6">
+                  {[
+                    { label: "Company Name", name: "name" },
+                    { label: "Email", name: "email", type: "email" },
+                    { label: "Phone Number", name: "phoneNumber" },
+                    { label: "Address", name: "address" },
+                    { label: "Region", name: "region" },
+                  ].map(({ label, name, type = "text" }) => (
+                    <div key={name}>
+                      <Label htmlFor={name}>{label}</Label>
+                      <Input
+                        type={type}
+                        id={name}
+                        name={name}
+                        placeholder={label}
+                        value={(formData as any)[name] || ""}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  ))}
+
+                  {!currentCompany && (
+                    <div>
+                      <Label htmlFor="password">Password</Label>
+                      <Input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Set a password"
+                        value={formData.password || ""}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  )}
+
                   <div>
                     <button
                       type="submit"
-                      disabled={isSubmitting}
+                      disabled={formLoading}
                       className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
                     >
-                      {isSubmitting
-                        ? selectedCompany
+                      {formLoading
+                        ? currentCompany
                           ? "Updating..."
                           : "Creating..."
-                        : selectedCompany
+                        : currentCompany
                         ? "Update Company"
                         : "Create Company"}
                     </button>

@@ -24,7 +24,7 @@ export default function AdminDashboard() {
           <MonthlyTarget />
         </div>
 
-        <div className="col-span-12 grid grid-cols-2 gap-3">
+        <div className="col-span-12 grid lg:grid-cols-2 sm:grid-cols-1 gap-3">
           <StatisticsChart />
           <ActionsLogChart />
 
