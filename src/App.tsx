@@ -27,7 +27,6 @@ import TowingRequestPage from "./pages/TowingCompany/TowingRequestsPage";
 import InsuranceCompanyPage from "./pages/InsuranceCompany/InsuranceCompanyPage";
 import TowingCompanyPage from "./pages/TowingCompany/TowingCompanyPage";
 import RespondersPage from "./pages/Shared/Responders/Responders";
-import VehiclesManagement from "./components/vehicles/VehiclesManagement";
 import { RoleRoute } from "./components/auth/RoleRoute";
 import EmergencyReportsPage from "./pages/EmergencyReports/EmergencyReportsPage";
 import EmergencyReportDetailsPage from "./pages/EmergencyReports/EmergencyReportDetailsPage";
@@ -46,7 +45,7 @@ interface FirebaseUserData {
 }
 
 export default function App() {
-    useWatchVerification();
+  useWatchVerification();
   const [, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [, setRole] = useState("");
@@ -137,7 +136,6 @@ export default function App() {
             <Route element={<RoleRoute allowedRoles={["towing_company"]} />}>
               <Route path="/towing/staff" element={<StaffMangement />} />
               <Route path="/towing/requests" element={<TowingRequestPage />} />
-              <Route path="/towing/vehicles" element={<VehiclesManagement />} />
             </Route>
 
             {/* insurer Company Routes */}
