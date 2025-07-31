@@ -21,7 +21,6 @@ import NotFound from "./pages/OtherPage/NotFound";
 import Unauthorized from "./pages/Shared/Unauthourised/Unauthorised";
 import HomeRedirect from "./pages/Shared/HomeRedirect";
 import CompanyDashboard from "./pages/Dashboard/CompanyDashboard";
-import StaffMangement from "./pages/StaffManagement/StaffManagement";
 import UserProfiles from "./pages/UserProfiles";
 import TowingRequestPage from "./pages/TowingCompany/TowingRequestsPage";
 import InsuranceCompanyPage from "./pages/InsuranceCompany/InsuranceCompanyPage";
@@ -37,6 +36,7 @@ import InsuranceStaffPage from "./pages/InsuranceCompany/InsuranceStaffPage";
 import IncidentsReportsPage from "./pages/IncidentsReportsPage/IncidentsReportsPage";
 import ResetPassword from "./components/auth/ResetPassword";
 import { useWatchVerification } from "./hooks/useWatchVerification";
+import TowingStaffPage from "./pages/TowingCompany/TowingStaffPage";
 
 // Types
 interface FirebaseUserData {
@@ -97,7 +97,6 @@ export default function App() {
             {/* Shared Routes */}
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/home" element={<CompanyDashboard />} />
-            <Route path="/staff" element={<StaffMangement />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
 
             {/* Super Admin Routes */}
@@ -134,7 +133,7 @@ export default function App() {
 
             {/* Towing Company Routes */}
             <Route element={<RoleRoute allowedRoles={["towing_company"]} />}>
-              <Route path="/towing/staff" element={<StaffMangement />} />
+              <Route path="/towing/staff" element={<TowingStaffPage />} />
               <Route path="/towing/requests" element={<TowingRequestPage />} />
             </Route>
 

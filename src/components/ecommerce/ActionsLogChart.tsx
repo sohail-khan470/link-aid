@@ -3,7 +3,7 @@ import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 import ChartTab from "../common/ChartTab";
 import LoadingSpinner from "../ui/LoadingSpinner";
-import { ActivityIcon } from "lucide-react";
+import { LucideAreaChart } from "lucide-react";
 import { useActionsLogStats } from "../../hooks/useActionsLogStats";
 
 type Mode = "hourly" | "weekly" | "monthly";
@@ -131,7 +131,7 @@ export default function ActionsLogChart() {
             />
           ) : (
             <div className="flex flex-col justify-center items-center h-[310px] text-center text-gray-400 dark:text-gray-500">
-              <ActivityIcon className="w-8 h-8 mb-2 text-gray-300 dark:text-gray-600" />
+              <LucideAreaChart className="w-10 h-10 mb-3 text-gray-300 dark:text-gray-600 animate-pulse" />
               <h4 className="text-base font-semibold">No actions log data</h4>
               <p className="text-sm mt-1 max-w-xs">
                 There's no data available for the selected filters.

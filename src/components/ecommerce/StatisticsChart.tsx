@@ -4,7 +4,7 @@ import { ApexOptions } from "apexcharts";
 import ChartTab from "../common/ChartTab";
 import { useRegistrationStatsByRole } from "../../hooks/useUserRegistrationStats";
 import LoadingSpinner from "../ui/LoadingSpinner";
-import { BarChart2Icon } from "lucide-react";
+import { LucideAreaChart } from "lucide-react";
 
 type Mode = "hourly" | "weekly" | "monthly";
 
@@ -119,7 +119,7 @@ export default function StatisticsChart() {
             />
           ) : (
             <div className="flex flex-col justify-center items-center h-[310px] text-center text-gray-400 dark:text-gray-500">
-              <BarChart2Icon className="w-8 h-8 mb-2 text-gray-300 dark:text-gray-600" />
+              <LucideAreaChart className="w-10 h-10 mb-3 text-gray-300 dark:text-gray-600 animate-bounce" />
               <h4 className="text-base font-semibold">No registration data</h4>
               <p className="text-sm mt-1 max-w-xs">
                 There's no data available for the selected role, time range, or

@@ -12,7 +12,19 @@ import Badge from "../ui/badge/Badge";
 import LoadingSpinner from "../ui/LoadingSpinner";
 import Pagination from "../ui/Pagination";
 import type { BadgeColor } from "../ui/badge/Badge";
-import { Search, Filter, RotateCcw } from "lucide-react";
+import {
+  Search,
+  Filter,
+  RotateCcw,
+  Eye,
+  User,
+  FileText,
+  Calendar,
+  Hash,
+  Bot,
+  X,
+} from "lucide-react";
+import { Modal } from "../ui/modal";
 
 const ROWS_PER_PAGE = 10;
 
@@ -23,6 +35,7 @@ export default function ClaimsTable() {
   const [statusFilter, setStatusFilter] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [page, setPage] = useState(1);
+  const [selectedClaim, setSelectedClaim] = useState<any | null>(null);
 
   const getStatusColor = (status: string): BadgeColor => {
     switch (status) {
@@ -75,6 +88,7 @@ export default function ClaimsTable() {
     <ComponentCard title="Claims List">
       {/* Filters */}
       <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Search Input */}
         <div className="relative">
           <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
@@ -92,6 +106,7 @@ export default function ClaimsTable() {
           />
         </div>
 
+        {/* Status Filter */}
         <div className="relative">
           <Filter
             className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
@@ -112,6 +127,7 @@ export default function ClaimsTable() {
           </select>
         </div>
 
+        {/* Role Filter */}
         <div className="relative">
           <Filter
             className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
@@ -133,28 +149,13 @@ export default function ClaimsTable() {
         </div>
       </div>
 
+      {/* Table */}
       {loading ? (
         <div className="p-8 flex justify-center items-center">
           <LoadingSpinner />
         </div>
       ) : filteredClaims.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-10 text-center">
-          <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-full mb-4">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-10 w-10 text-gray-400 dark:text-gray-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 13h6m2 8H7a2 2 0 01-2-2V7a2 2 0 012-2h4l2-2h6a2 2 0 012 2v12a2 2 0 01-2 2z"
-              />
-            </svg>
-          </div>
           <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
             No Claims Found
           </h3>
@@ -178,13 +179,9 @@ export default function ClaimsTable() {
                     "Claim #",
                     "Name",
                     "Category",
-                    "Description",
                     "Status",
-                    "Assigned To",
-                    "AI Suggestion",
-                    "Submitted At",
-                    "Updated At",
                     "Role",
+                    "Action",
                   ].map((heading) => (
                     <TableCell
                       key={heading}
@@ -204,53 +201,20 @@ export default function ClaimsTable() {
                     className="hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors duration-150"
                   >
                     <TableCell className="px-6 py-4 text-gray-900 dark:text-gray-100">
-                      {claim.claimNumber ||
-                        `C-${claim.submittedAt
-                          ?.toDate()
-                          .toISOString()
-                          .slice(0, 10)
-                          .replace(/-/g, "")}-${claim.id.slice(0, 5)}`}
+                      {claim.claimNumber || `C-${claim.id.slice(0, 5)}`}
                     </TableCell>
 
-                    <TableCell className="px-6 py-4 text-gray-800 dark:text-gray-200">
-                      {claim?.fullName
-                        ? claim.fullName.charAt(0).toUpperCase() +
-                          claim.fullName.slice(1)
-                        : "Unknown"}
+                    <TableCell className="px-6 py-4  text-gray-900 dark:text-gray-100">
+                      {claim?.fullName.toLocaleUpperCase() || "Unknown"}
                     </TableCell>
-
-                    <TableCell className="px-6 py-4 text-gray-800 dark:text-gray-200">
+                    <TableCell className="px-6 py-4  text-gray-900 dark:text-gray-100">
                       {claim?.category || "N/A"}
-                    </TableCell>
-
-                    <TableCell className="px-6 py-4 text-gray-800 dark:text-gray-200 max-w-xs truncate">
-                      {claim?.description || "N/A"}
                     </TableCell>
 
                     <TableCell className="px-6 py-4">
                       <Badge color={getStatusColor(claim.status || "unknown")}>
-                        {claim.status?.replace("_", " ") || "Unknown"}
+                        {claim.status || "Unknown"}
                       </Badge>
-                    </TableCell>
-
-                    <TableCell className="px-6 py-4 text-gray-800 dark:text-gray-200">
-                      {claim.assignedInsurerId || "Unassigned"}
-                    </TableCell>
-
-                    <TableCell className="px-6 py-4 text-gray-800 dark:text-gray-200 truncate max-w-xs">
-                      {claim.aiSuggestion || "N/A"}
-                    </TableCell>
-
-                    <TableCell className="px-6 py-4 text-gray-800 dark:text-gray-200">
-                      {claim.submittedAt?.toDate
-                        ? claim.submittedAt.toDate().toLocaleDateString()
-                        : "N/A"}
-                    </TableCell>
-
-                    <TableCell className="px-6 py-4 text-gray-800 dark:text-gray-200">
-                      {claim.updatedAt?.toDate
-                        ? claim.updatedAt.toDate().toLocaleDateString()
-                        : "N/A"}
                     </TableCell>
 
                     <TableCell className="px-6 py-4">
@@ -265,6 +229,15 @@ export default function ClaimsTable() {
                       >
                         {claim?.role || "N/A"}
                       </Badge>
+                    </TableCell>
+
+                    <TableCell className="px-6 py-4">
+                      <button
+                        onClick={() => setSelectedClaim(claim)}
+                        className="p-2 text-blue-600 hover:bg-blue-100 rounded-full transition"
+                      >
+                        <Eye size={18} />
+                      </button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -289,6 +262,175 @@ export default function ClaimsTable() {
           {error}
         </p>
       )}
+
+      {/* Modal for claim details */}
+      <Modal isOpen={!!selectedClaim} onClose={() => setSelectedClaim(null)}>
+        {selectedClaim && (
+          <div
+            className="relative bg-white dark:bg-gray-800 
+                    w-full h-full sm:max-w-lg sm:h-auto sm:rounded-2xl
+                    shadow-xl p-6 sm:p-8 overflow-y-auto max-h-[100vh] sm:max-h-[90vh]"
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => setSelectedClaim(null)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition"
+            >
+              <X size={22} />
+            </button>
+
+            {/* Header */}
+            <div className="mb-6 border-b border-gray-200 dark:border-gray-700 pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3">
+                  Claim Details
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Comprehensive view of this claim record
+                </p>
+              </div>
+              {/* Status Badge */}
+              <Badge
+                color={
+                  selectedClaim.status === "resolved"
+                    ? "success"
+                    : selectedClaim.status === "pending"
+                    ? "info"
+                    : selectedClaim.status === "submitted"
+                    ? "warning"
+                    : "error"
+                }
+              >
+                {selectedClaim.status || "Unknown"}
+              </Badge>
+            </div>
+
+            {/* Claim Info */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-gray-700 dark:text-gray-200">
+              <div className="flex items-center gap-3">
+                <Hash size={20} />
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Claim Number
+                  </p>
+                  <p className="font-medium break-words">
+                    {selectedClaim.claimNumber ||
+                      `C-${selectedClaim.id.slice(0, 6)}`}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <User size={20} />
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Submitted By
+                  </p>
+                  <p className="font-medium">
+                    {selectedClaim.fullName || "Unknown"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <FileText size={20} />
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Category
+                  </p>
+                  <p className="font-medium">
+                    {selectedClaim.category || "N/A"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Bot size={20} />
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    AI Suggestion
+                  </p>
+                  <p className="font-medium break-words">
+                    {selectedClaim.aiSuggestion || "N/A"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Calendar size={20} />
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Submitted At
+                  </p>
+                  <p className="font-medium">
+                    {selectedClaim.submittedAt?.toDate
+                      ? selectedClaim.submittedAt.toDate().toLocaleDateString()
+                      : "N/A"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Calendar size={20} />
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Last Updated
+                  </p>
+                  <p className="font-medium">
+                    {selectedClaim.updatedAt?.toDate
+                      ? selectedClaim.updatedAt.toDate().toLocaleDateString()
+                      : "N/A"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <User size={20} />
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Role
+                  </p>
+                  <span
+                    className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                      selectedClaim.role === "civilian"
+                        ? "bg-green-100 text-green-700 dark:bg-green-800 dark:text-green-100"
+                        : selectedClaim.role === "insurer"
+                        ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-800 dark:text-yellow-100"
+                        : "bg-blue-100 text-blue-700 dark:bg-blue-800 dark:text-blue-100"
+                    }`}
+                  >
+                    {selectedClaim.role || "N/A"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 ">
+                <User size={20} />
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Assigned To
+                  </p>
+                  <p className="font-medium">
+                    {selectedClaim.assignedInsurerId || "Unassigned"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <FileText size={20} />
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Description
+                  </p>
+                  <p className="font-medium break-words">
+                    {selectedClaim.description || "N/A"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
     </ComponentCard>
   );
 }

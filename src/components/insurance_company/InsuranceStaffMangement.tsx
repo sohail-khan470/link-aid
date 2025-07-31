@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-import { Pencil, Save, Trash, X } from "lucide-react";
+import { Loader, Pencil, Save, Trash, X } from "lucide-react";
 import Badge from "../ui/badge/Badge";
 import LoadingSpinner from "../ui/LoadingSpinner";
 import CustomAlert from "../ui/alert/CustomAlert";
@@ -158,8 +158,29 @@ export default function InsuranceStaffManagement() {
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                 {staffList.length === 0 ? (
                   <TableRow>
-                    <TableCell className="text-center py-4 text-gray-500">
-                      {loading ? <LoadingSpinner /> : <p>No data found</p>}
+                    <TableCell
+                      colSpan={7} // spans across all columns
+                      className="py-12"
+                    >
+                      {loading ? (
+                        <div className="flex justify-center items-center">
+                          <LoadingSpinner />
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+                          <Loader
+                            className=" animate-[spin_3s_linear_infinite] mb-4"
+                            size={24}
+                          />
+                          <h3 className="text-lg font-semibold">
+                            No Staff Members Found
+                          </h3>
+                          <p className="text-sm mt-1 text-center max-w-sm">
+                            Try searching for a civilian by email to assign them
+                            as a staff member.
+                          </p>
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 ) : (
