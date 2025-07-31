@@ -87,7 +87,7 @@ const towingCompanyNavItems: NavItem[] = [
   {
     icon: <Users />,
     name: "Tow Operators",
-    path: "/staff",
+    path: "/towing/staff",
   },
   {
     name: "Towing Requests",
