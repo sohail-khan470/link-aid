@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -24,10 +24,12 @@ export default function TowingCompanyManagement() {
     formLoading,
     handleDelete,
     handleSubmit,
+    getStaffCounts,
   } = useTowingCompanyManagement();
 
   const [showForm, setShowForm] = useState(false);
   const [currentCompany, setCurrentCompany] = useState<any | null>(null);
+  const [staffCounts, setStaffCounts] = useState<Record<string, number>>({});
   const [formData, setFormData] = useState<{
     name: string;
     email: string;
@@ -109,6 +111,14 @@ export default function TowingCompanyManagement() {
     if (ok) setShowForm(false);
   };
 
+  useEffect(() => {
+    const fetchCounts = async () => {
+      const counts = await getStaffCounts();
+      setStaffCounts(counts);
+    };
+    fetchCounts();
+  }, []);
+
   return (
     <>
       <ComponentCard
@@ -172,7 +182,7 @@ export default function TowingCompanyManagement() {
                       {[
                         "Name",
                         "Email",
-                        "Phone",
+                        "Tow Operators",
                         "Region",
                         "Verified",
                         "Actions",
@@ -200,7 +210,7 @@ export default function TowingCompanyManagement() {
                           {c.email}
                         </TableCell>
                         <TableCell className="py-3 px-5 text-gray-800 dark:text-gray-400">
-                          {c.phoneNumber}
+                          {staffCounts[c.id] ?? 0}
                         </TableCell>
                         <TableCell className="py-3 px-5 text-gray-800 dark:text-gray-400">
                           {c.region}
@@ -217,12 +227,14 @@ export default function TowingCompanyManagement() {
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleEdit(c)}
+                              aria-label="Edit company"
                               className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400"
                             >
                               <FiEdit2 size={16} />
                             </button>
                             <button
                               onClick={() => handleDelete(c.id)}
+                              aria-label="Delete company"
                               className="text-red-500 hover:text-red-700 dark:text-red-400"
                             >
                               <FiTrash2 size={16} />

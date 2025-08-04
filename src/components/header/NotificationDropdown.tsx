@@ -25,9 +25,10 @@ export default function NotificationDropdown() {
       >
         {newNotification && (
           <span className="absolute right-0 top-0.5 z-10 h-2 w-2 rounded-full bg-orange-400">
-            <span className="absolute inline-flex w-full h-full bg-orange-400 rounded-full opacity-75 animate-ping"></span>
+            <span className="absolute inline-flex w-2 h-2 bg-orange-400 rounded-full opacity-75 animate-ping"></span>
           </span>
         )}
+
         <svg
           className="fill-current"
           width="20"

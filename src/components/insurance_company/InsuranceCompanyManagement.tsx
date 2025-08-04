@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -25,6 +25,7 @@ interface Company {
   createdAt?: Timestamp;
   activeClaims?: any[];
   isVerified?: boolean; // ✅ Added field
+  Staff?: string;
 }
 
 export default function InsuranceCompanyManagement() {
@@ -34,10 +35,15 @@ export default function InsuranceCompanyManagement() {
     formLoading,
     handleDelete,
     handleSubmit,
+    getStaffCounts,
   } = useInsuranceCompany();
+
+  console.log(getStaffCounts());
 
   const [showForm, setShowForm] = useState(false);
   const [currentCompany, setCurrentCompany] = useState<Company | null>(null);
+  const [staffCounts, setStaffCounts] = useState<Record<string, number>>({});
+
   const [formData, setFormData] = useState<{
     companyName: string;
     contactEmail: string;
@@ -47,6 +53,7 @@ export default function InsuranceCompanyManagement() {
     language?: string;
     password?: string;
     createdAt?: Timestamp;
+    staff?: string;
   }>({
     companyName: "",
     contactEmail: "",
@@ -56,6 +63,7 @@ export default function InsuranceCompanyManagement() {
     language: "en",
     password: "",
     createdAt: undefined,
+    staff: "",
   });
 
   // ✅ Region Filter
@@ -113,6 +121,14 @@ export default function InsuranceCompanyManagement() {
     if (ok) setShowForm(false);
   };
 
+  useEffect(() => {
+    const fetchCounts = async () => {
+      const counts = await getStaffCounts();
+      setStaffCounts(counts);
+    };
+    fetchCounts();
+  }, []);
+
   return (
     <>
       <ComponentCard
@@ -158,15 +174,6 @@ export default function InsuranceCompanyManagement() {
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               Try adjusting the region filter or add a new insurance company.
             </p>
-            <button
-              onClick={() => {
-                setRegionFilter("");
-                setCurrentPage(1);
-              }}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
-            >
-              Reset Filters
-            </button>
           </div>
         ) : (
           <>
@@ -177,8 +184,9 @@ export default function InsuranceCompanyManagement() {
                     <TableRow>
                       {[
                         "Company",
-                        "Contact",
-                        "CreatedAt",
+                        "Email",
+                        // "CreatedAt",
+                        "Staff",
                         "Region",
                         "Active Claims",
                         "Verified", // ✅ Added column
@@ -207,9 +215,7 @@ export default function InsuranceCompanyManagement() {
                           {c.contactEmail}
                         </TableCell>
                         <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
-                          {c?.createdAt?.toDate
-                            ? c.createdAt.toDate().toLocaleDateString()
-                            : "N/A"}
+                          {staffCounts[c.id] ?? 0}
                         </TableCell>
                         <TableCell className="py-3 px-5 text-gray-600 dark:text-gray-400">
                           {c.region}
