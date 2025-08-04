@@ -20,7 +20,7 @@ export default function ActionsLogTable() {
   const [userFilter, setUserFilter] = useState("");
   const [actionFilter, setActionFilter] = useState("");
 
-  const itemsPerPage = 10;
+  const itemsPerPage = 6;
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -80,7 +80,11 @@ export default function ActionsLogTable() {
 
         <div className="relative">
           <Filter className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+          <label htmlFor="role-filter" className="sr-only">
+            Filter by Role
+          </label>
           <select
+            id="role-filter"
             className="w-full pl-10 border rounded-lg px-3 py-2 text-sm dark:bg-gray-800 dark:text-white focus:border-blue-400 focus:ring focus:ring-blue-300/40 transition"
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
@@ -95,7 +99,11 @@ export default function ActionsLogTable() {
 
         <div className="relative">
           <Filter className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+          <label htmlFor="action-filter" className="sr-only">
+            Filter by Action
+          </label>
           <select
+            id="action-filter"
             className="w-full pl-10 border rounded-lg px-3 py-2 text-sm dark:bg-gray-800 dark:text-white focus:border-blue-400 focus:ring focus:ring-blue-300/40 transition"
             value={actionFilter}
             onChange={(e) => setActionFilter(e.target.value)}
@@ -156,19 +164,34 @@ export default function ActionsLogTable() {
               <Table>
                 <TableHeader className="border-b border-gray-100 dark:border-white/[0.05] bg-gray-50 dark:bg-gray-900">
                   <TableRow>
-                    <TableCell isHeader className="px-5 py-3 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider"
+                    >
                       User
                     </TableCell>
-                    <TableCell isHeader className="px-5 py-3 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider"
+                    >
                       Role
                     </TableCell>
-                    <TableCell isHeader className="px-5 py-3 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider"
+                    >
                       Action
                     </TableCell>
-                    <TableCell isHeader className="px-5 py-3 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider"
+                    >
                       Description
                     </TableCell>
-                    <TableCell isHeader className="px-5 py-3 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider"
+                    >
                       Time
                     </TableCell>
                   </TableRow>

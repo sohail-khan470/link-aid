@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   collection,
   onSnapshot,
@@ -6,10 +6,11 @@ import {
   query,
   QuerySnapshot,
   DocumentData,
+  doc,
+  getDoc,
 } from "firebase/firestore";
-import { db, auth } from "../../firebase"; // include auth
+import { db, auth } from "../../firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
 
 export type ActionLog = {
   id: string;
@@ -27,6 +28,9 @@ export function useActionsLog() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Track the last seen log ID to detect new entries
+  const lastSeenLogId = useRef<string | null>(null);
+
   useEffect(() => {
     let unsubscribe: () => void;
     let currentUserUnsub: () => void;
@@ -35,10 +39,12 @@ export function useActionsLog() {
       currentUserUnsub = onAuthStateChanged(auth, async (user) => {
         if (user) {
           try {
+            //  Fetch the current logged-in user's Firestore record
             const userDoc = await getDoc(doc(db, "users", user.uid));
             if (userDoc.exists()) {
               const currentUser = userDoc.data();
               const currentRole = currentUser.role;
+              const currentUserId = user.uid;
 
               const q = query(
                 collection(db, "actions_log"),
@@ -54,14 +60,30 @@ export function useActionsLog() {
                       ...doc.data(),
                     })) as ActionLog[];
 
-                    // 🔐 Filter logs based on current user role
+                    // super_admin can see all actions, others only their own role + userId
                     const filteredLogs =
                       currentRole === "super_admin"
                         ? data
-                        : data.filter((log) => log.role === currentRole);
+                        : data.filter(
+                            (log) =>
+                              log.role === currentRole &&
+                              log.userId === currentUserId
+                          );
 
                     setLogs(filteredLogs);
-                    setNewNotification(true);
+
+                    // ✅ Detect if there's a truly new log
+                    if (
+                      filteredLogs.length > 0 &&
+                      filteredLogs[0].id !== lastSeenLogId.current
+                    ) {
+                      // Mark new notification only when the newest log changes
+                      if (lastSeenLogId.current !== null) {
+                        setNewNotification(true);
+                      }
+                      lastSeenLogId.current = filteredLogs[0].id;
+                    }
+
                     setLoading(false);
                   } catch (err) {
                     console.error("Error parsing logs:", err);
