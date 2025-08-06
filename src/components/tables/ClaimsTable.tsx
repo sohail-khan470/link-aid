@@ -113,6 +113,7 @@ export default function ClaimsTable() {
             size={18}
           />
           <select
+            aria-label="filter through status"
             value={statusFilter}
             onChange={(e) => {
               setStatusFilter(e.target.value);
@@ -134,6 +135,7 @@ export default function ClaimsTable() {
             size={18}
           />
           <select
+            aria-label="filter through role"
             value={roleFilter}
             onChange={(e) => {
               setRoleFilter(e.target.value);
@@ -180,7 +182,7 @@ export default function ClaimsTable() {
                     "Name",
                     "Category",
                     "Status",
-                    "Role",
+                    "Assigned Staff",
                     "Action",
                   ].map((heading) => (
                     <TableCell
@@ -217,7 +219,11 @@ export default function ClaimsTable() {
                       </Badge>
                     </TableCell>
 
-                    <TableCell className="px-6 py-4">
+                                        <TableCell className="px-6 py-4  text-gray-900 dark:text-gray-100">
+                      {claim?.assignedInsurerId || "N/A"}
+                    </TableCell>
+
+                    {/* <TableCell className="px-6 py-4">
                       <Badge
                         color={
                           claim?.role === "civilian"
@@ -229,10 +235,11 @@ export default function ClaimsTable() {
                       >
                         {claim?.role || "N/A"}
                       </Badge>
-                    </TableCell>
+                    </TableCell> */}
 
                     <TableCell className="px-6 py-4">
                       <button
+                        aria-label="f"
                         onClick={() => setSelectedClaim(claim)}
                         className="p-2 text-blue-600 hover:bg-blue-100 rounded-full transition"
                       >
@@ -273,6 +280,7 @@ export default function ClaimsTable() {
           >
             {/* Close Button */}
             <button
+              aria-label="c"
               onClick={() => setSelectedClaim(null)}
               className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition"
             >

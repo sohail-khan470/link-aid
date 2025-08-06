@@ -38,7 +38,6 @@ export default function InsuranceCompanyManagement() {
     getStaffCounts,
   } = useInsuranceCompany();
 
-  console.log(getStaffCounts());
 
   const [showForm, setShowForm] = useState(false);
   const [currentCompany, setCurrentCompany] = useState<Company | null>(null);

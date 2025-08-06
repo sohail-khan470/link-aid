@@ -60,21 +60,39 @@ export function useRegistrationStatsByRole(mode: Mode, selectedYear: number) {
 }
 
 function groupByTime(docs: any[], mode: Mode, year: number): number[] {
-  const buckets = Array(mode === "weekly" ? 4 : 12).fill(0);
+  const buckets = Array(
+    mode === "weekly" ? 4 : mode === "hourly" ? 12 : 12
+  ).fill(0);
 
   docs.forEach((doc) => {
     const date = doc.createdAt?.toDate?.();
     if (!date) return;
 
-    let index = 0;
+    let index = -1;
 
     if (mode === "monthly") {
       if (date.getFullYear() !== year) return;
       index = date.getMonth();
-    } else if (mode === "weekly") {
-      if (date.getFullYear() !== year) return;
-      index = Math.floor(date.getDate() / 7);
-    } else if (mode === "hourly") {
+    } 
+    
+    else if (mode === "weekly") {
+      const today = new Date();
+      if (
+        date.getFullYear() !== today.getFullYear() ||
+        date.getMonth() !== today.getMonth()
+      )
+        return;
+
+      // dayOfMonth: 1–31
+      const dayOfMonth = date.getDate();
+      const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+      
+      // Split days into 4 buckets evenly
+      const weekSize = Math.ceil(daysInMonth / 4);
+      index = Math.min(3, Math.floor((dayOfMonth - 1) / weekSize));
+    } 
+    
+    else if (mode === "hourly") {
       const today = new Date();
       if (
         date.getFullYear() !== today.getFullYear() ||
@@ -83,7 +101,7 @@ function groupByTime(docs: any[], mode: Mode, year: number): number[] {
       )
         return;
 
-      index = Math.floor(date.getHours() / 2); // 2-hour buckets (0–2, 2–4, ..., 22–24)
+      index = Math.floor(date.getHours() / 2); // 12 buckets for 24 hours
     }
 
     if (index >= 0 && index < buckets.length) {

@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   Building2,
   Car,
+  FileSignature,
   FileText,
   History,
   Home,
@@ -109,8 +110,18 @@ const insurerCompanyNavItems: NavItem[] = [
   },
   {
     icon: <Users />,
-    name: "Insurers",
+    name: "Company Staff",
     path: "/insurer/staff",
+  },
+  {
+    icon: <FileSignature />,
+    name: "Insurance Policies",
+    path: "/insurer/policies",
+  },
+  {
+    icon: <ShieldCheck />,
+    name: "Insurance Holders",
+    path: "/insurer/holders",
   },
   {
     name: "Claims",
