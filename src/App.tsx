@@ -22,7 +22,6 @@ import Unauthorized from "./pages/Shared/Unauthourised/Unauthorised";
 import HomeRedirect from "./pages/Shared/HomeRedirect";
 import CompanyDashboard from "./pages/Dashboard/CompanyDashboard";
 import UserProfiles from "./pages/UserProfiles";
-import TowingRequestPage from "./pages/TowingCompany/TowingRequestsPage";
 import InsuranceCompanyPage from "./pages/InsuranceCompany/InsuranceCompanyPage";
 import TowingCompanyPage from "./pages/TowingCompany/TowingCompanyPage";
 import RespondersPage from "./pages/Shared/Responders/Responders";
@@ -37,6 +36,8 @@ import IncidentsReportsPage from "./pages/IncidentsReportsPage/IncidentsReportsP
 import ResetPassword from "./components/auth/ResetPassword";
 import { useWatchVerification } from "./hooks/useWatchVerification";
 import TowingStaffPage from "./pages/TowingCompany/TowingStaffPage";
+import InsuranceHolderPage from "./pages/InsuranceCompany/InsuranceHolderPage";
+import InsurancePolicyPage from "./pages/InsuranceCompany/InsurancePolicyPage";
 
 // Types
 interface FirebaseUserData {
@@ -134,13 +135,15 @@ export default function App() {
             {/* Towing Company Routes */}
             <Route element={<RoleRoute allowedRoles={["towing_company"]} />}>
               <Route path="/towing/staff" element={<TowingStaffPage />} />
-              <Route path="/towing/requests" element={<TowingRequestPage />} />
+              <Route path="/towing/requests" element={<TowRequestsPage />} />
             </Route>
 
             {/* insurer Company Routes */}
             <Route element={<RoleRoute allowedRoles={["insurer"]} />}>
               <Route path="/insurer/staff" element={<InsuranceStaffPage />} />
               <Route path="/insurer/claims" element={<InsurerClaimsPage />} />
+              <Route path="/insurer/holders" element={<InsuranceHolderPage />} />
+              <Route path="/insurer/policies" element={<InsurancePolicyPage />} />
             </Route>
           </Route>
         </Route>

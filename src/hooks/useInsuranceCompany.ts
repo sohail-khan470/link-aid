@@ -309,8 +309,6 @@ export const useInsuranceCompany = () => {
         ...doc.data(),
       }));
 
-      console.log("companies----->>", companies);
-
       if (companies.length === 0) return {};
 
       // 2. Get all insurer users
