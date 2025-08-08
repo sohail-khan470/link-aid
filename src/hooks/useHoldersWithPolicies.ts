@@ -1,113 +1,3 @@
-// import { useState, useEffect } from "react";
-// import {
-//   collection,
-//   query,
-//   where,
-//   getDocs,
-//   updateDoc,
-//   doc,
-//   serverTimestamp,
-//   onSnapshot,
-// } from "firebase/firestore";
-// import { useInsurancePolicy } from "./useInsurancePolicy";
-// import { toast } from "react-toastify";
-// import { auth, db } from "../../firebase";
-
-// export function useHoldersWithPolicies() {
-//   const [insuranceHolders, setInsuranceHolders] = useState<any[]>([]);
-//   const [holdersLoading, setHoldersLoading] = useState(true);
-//   useEffect(() => {
-//     if (!auth.currentUser) return;
-//     const q = query(
-//       collection(db, "users"),
-//       where("role", "==", "civilian"),
-//       where("companyId", "==", auth.currentUser.uid)
-//     );
-//     const unsubscribe = onSnapshot(q, (snap) => {
-//       setInsuranceHolders(
-//         snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
-//       );
-//       setHoldersLoading(false);
-//     });
-//     return unsubscribe;
-//   }, []);
-
-//   const { policyList, loading: policiesLoading } = useInsurancePolicy();
-
-//   // Combine holders + their policies ---
-//   const holdersWithPolicies = insuranceHolders.map((holder) => ({
-//     ...holder,
-//     policies: policyList.filter((p) => p.userId === holder.id),
-//   }));
-
-//   // Search & assign logic ---
-//   const [searchEmail, setSearchEmail] = useState("");
-//   const [userData, setUserData] = useState<any | null>(null);
-//   const [actionLoading, setActionLoading] = useState(false);
-
-//   const fetchUserByEmail = async () => {
-//     if (!searchEmail) return toast.error("Enter an email to search.");
-//     setActionLoading(true);
-//     try {
-//       const q = query(
-//         collection(db, "users"),
-//         where("email", "==", searchEmail.trim())
-//       );
-//       const snap = await getDocs(q);
-//       if (snap.empty) {
-//         setUserData(null);
-//         toast.error("No user found with that email.");
-//       } else {
-//         const docSnap = snap.docs[0];
-//         setUserData({ id: docSnap.id, ...(docSnap.data() as any) });
-//       }
-//     } catch (err) {
-//       console.error(err);
-//       toast.error("Error searching user.");
-//     } finally {
-//       setActionLoading(false);
-//     }
-//   };
-
-//   const assignHolderToCompany = async () => {
-//     if (!userData || !auth.currentUser) return;
-//     if (userData.companyId) {
-//       toast.warning("User is already assigned to a company.");
-//       return;
-//     }
-//     setActionLoading(true);
-//     try {
-//       const userRef = doc(db, "users", userData.id);
-//       await updateDoc(userRef, {
-//         companyId: auth.currentUser.uid,
-//         updatedAt: serverTimestamp(),
-//         isVerified: true,
-//       });
-//       toast.success("User assigned as a policyholder.");
-//       // clear out detail card and input
-//       setUserData(null);
-//       setSearchEmail("");
-//     } catch (err) {
-//       console.error(err);
-//       toast.error("Failed to assign user.");
-//     } finally {
-//       setActionLoading(false);
-//     }
-//   };
-
-//   return {
-//     holdersWithPolicies,
-//     loading: holdersLoading || policiesLoading,
-//     searchEmail,
-//     setSearchEmail,
-//     userData,
-//     setUserData,
-//     actionLoading,
-//     fetchUserByEmail,
-//     assignHolderToCompany,
-//   };
-// }
-
 import { useState, useEffect } from "react";
 import {
   collection,
@@ -182,22 +72,42 @@ export function useHoldersWithPolicies() {
   const fetchUserByEmail = async () => {
     if (!searchEmail) return toast.error("Enter an email to search.");
     setActionLoading(true);
+    setUserData(null);
+
     try {
       const q = query(
         collection(db, "users"),
         where("email", "==", searchEmail.trim())
       );
       const snap = await getDocs(q);
+
       if (snap.empty) {
-        setUserData(null);
-        toast.error("No user found with that email.");
-      } else {
-        const docSnap = snap.docs[0];
-        setUserData({ id: docSnap.id, ...(docSnap.data() as any) });
+        toast.error("No user found. Please register first.");
+        return;
       }
+
+      const docSnap = snap.docs[0];
+      const data = docSnap.data();
+
+      // Allow only civilians or insurers
+      if (data.role !== "civilian") {
+        toast.error("User is not a civilian. Please register them first.");
+        return;
+      }
+
+      // Check if already assigned to this company
+      const isAlreadyHolder = insuranceHolders.some(
+        (holder) => holder.email === searchEmail.trim()
+      );
+      if (isAlreadyHolder) {
+        toast.warning("User is already assigned to your company.");
+        return;
+      }
+
+      setUserData({ id: docSnap.id, ...data });
     } catch (err) {
       console.error(err);
-      toast.error("Error searching user.");
+      toast.error("Failed to fetch user.");
     } finally {
       setActionLoading(false);
     }
@@ -297,6 +207,6 @@ export function useHoldersWithPolicies() {
     actionLoading,
     fetchUserByEmail,
     assignHolderToCompany,
-    unassignHolderFromCompany, // 🔹 Expose unassignment
+    unassignHolderFromCompany,
   };
 }

@@ -1,7 +1,13 @@
 // hooks/useProfile.ts
 import { useEffect, useState } from "react";
 import { User, onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, Timestamp } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  onSnapshot,
+  updateDoc,
+  Timestamp,
+} from "firebase/firestore";
 import { auth, db } from "../../firebase";
 
 export type UserProfile = {
@@ -11,7 +17,8 @@ export type UserProfile = {
   role?: string;
   location?: string;
   lastLogin?: Timestamp;
-  // createdAt?: { seconds: number; nanoseconds: number };
+  language?: string;
+  isVerified?: boolean;
   [key: string]: any;
 };
 
@@ -21,6 +28,7 @@ export const useProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  //  Fetch profile once (fallback if needed)
   const fetchProfile = async (userId: string) => {
     try {
       const docRef = doc(db, "users", userId);
@@ -42,12 +50,48 @@ export const useProfile = () => {
     }
   };
 
+  //  Update profile
+  const updateProfile = async (updates: Partial<UserProfile>) => {
+    if (!user) return { success: false, error: "User not authenticated" };
+
+    try {
+      const docRef = doc(db, "users", user.uid);
+      await updateDoc(docRef, updates);
+      return { success: true };
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      return { success: false, error: "Failed to update profile" };
+    }
+  };
+
+  //  Listen in real time
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
       setLoading(true);
       if (currentUser) {
         setUser(currentUser);
-        fetchProfile(currentUser.uid);
+
+        const userRef = doc(db, "users", currentUser.uid);
+        const unsubscribeProfile = onSnapshot(
+          userRef,
+          (docSnap) => {
+            if (docSnap.exists()) {
+              setProfile(docSnap.data());
+              setError("");
+            } else {
+              setError("Profile not found");
+              setProfile(null);
+            }
+            setLoading(false);
+          },
+          (err) => {
+            console.error("Error listening to profile:", err);
+            setError("Failed to listen to profile");
+            setLoading(false);
+          }
+        );
+
+        return unsubscribeProfile; // unsubscribe on unmount/auth change
       } else {
         setUser(null);
         setProfile(null);
@@ -56,7 +100,7 @@ export const useProfile = () => {
       }
     });
 
-    return unsubscribe;
+    return unsubscribeAuth;
   }, []);
 
   return {
@@ -65,5 +109,6 @@ export const useProfile = () => {
     loading,
     error,
     refresh: () => user && fetchProfile(user.uid),
+    updateProfile,
   };
 };
