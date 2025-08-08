@@ -97,7 +97,7 @@ export const useStaffAssignment = () => {
       const docSnap = snapshot.docs[0];
       const data = docSnap.data();
 
-      if (data.role !== "civilian") {
+      if (data.role !== "civilian" && data.role !== "insurer") {
         toast.error("User is not a civilian. Please register them first.");
         return;
       }
@@ -250,6 +250,7 @@ export const useStaffAssignment = () => {
     assignRoleAndCompany,
     staffList,
     deleteStaff,
+    setUserData,
     updateStaffRole,
     companyId,
     companyName,

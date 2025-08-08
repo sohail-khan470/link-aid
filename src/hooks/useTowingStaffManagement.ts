@@ -78,7 +78,7 @@ export const useTowingStaffManagement = () => {
       const docSnap = snapshot.docs[0];
       const data = docSnap.data();
 
-      if (data.role !== "civilian") {
+      if (data.role !== "civilian" && data.role !== "tow_operator") {
         toast.error("User is not a civilian. Please register them first.");
         return;
       }
@@ -270,7 +270,9 @@ export const useTowingStaffManagement = () => {
     assignRoleAndCompany,
     staffList,
     deleteStaff,
+    companyId,
     updateStaffRole,
+    setUserData,
     editingStaff,
     setEditingStaff,
   };
