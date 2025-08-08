@@ -147,7 +147,7 @@ export default function InsuranceStaffManagement() {
                     <TableCell
                       key={heading}
                       isHeader
-                      className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400 uppercase"
+                      className="px-5 py-4 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400 uppercase"
                     >
                       {heading}
                     </TableCell>
@@ -189,7 +189,7 @@ export default function InsuranceStaffManagement() {
                       key={staff.id}
                       className="hover:bg-blue-50 dark:hover:bg-white/5 transition"
                     >
-                      <TableCell className="py-3 px-5 text-gray-800 dark:text-gray-400">
+                      <TableCell className="py-3 px-5 text-gray-800 dark:text-gray-400 text-">
                         {staff.fullName}
                       </TableCell>
 
@@ -214,7 +214,13 @@ export default function InsuranceStaffManagement() {
                             </option>
                           </select>
                         ) : (
-                          staff?.role
+                          <Badge
+                            color={
+                              staff?.role == "insurer" ? "info" : "warning"
+                            }
+                          >
+                            {staff?.role}
+                          </Badge>
                         )}
                       </TableCell>
 
@@ -231,14 +237,14 @@ export default function InsuranceStaffManagement() {
                               Verified
                             </option>
                             <option value="false" className="dark:bg-gray-800">
-                              Not Verified
+                              Unverified
                             </option>
                           </select>
                         ) : (
                           <Badge
                             color={staff.isVerified ? "success" : "warning"}
                           >
-                            {staff.isVerified ? "Verified" : "Not Verified"}
+                            {staff.isVerified ? "Verified" : "Unverified"}
                           </Badge>
                         )}
                       </TableCell>
@@ -259,18 +265,12 @@ export default function InsuranceStaffManagement() {
                               day: "2-digit",
                               month: "2-digit",
                               year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: true,
                             })
                           : staff.createdAt?.toDate
                           ? staff.createdAt.toDate().toLocaleString("en-GB", {
                               day: "2-digit",
                               month: "2-digit",
                               year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: true,
                             })
                           : "N/A"}
                       </TableCell>
