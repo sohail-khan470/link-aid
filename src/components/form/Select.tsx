@@ -9,7 +9,7 @@ interface SelectProps
   extends Omit<SelectHTMLAttributes<HTMLSelectElement>, "onChange"> {
   options: Option[];
   placeholder?: string;
-  onChange: (value: string) => void; // ✅ custom handler
+  onChange: (value: string) => void; //   custom handler
   className?: string;
   defaultValue?: string;
 }

@@ -33,7 +33,7 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-// ✅ Main App
+//   Main App
 const mainApp = !getApps().length
   ? initializeApp(firebaseConfig)
   : getApps()[0];
@@ -46,7 +46,7 @@ export const firestore = db;
 // Ensure persistence before usage
 setPersistence(auth, browserLocalPersistence).catch(console.error);
 
-// ✅ Secondary App
+//   Secondary App
 const secondaryApp =
   getApps().find((a) => a.name === "Secondary") ||
   initializeApp(firebaseConfig, "Secondary");

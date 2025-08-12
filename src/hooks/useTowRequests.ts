@@ -10,7 +10,7 @@ import {
 } from "firebase/firestore";
 import { db, auth } from "../../firebase";
 import { toast } from "react-toastify";
-import { logAction } from "../utils/logAction"; // ✅ action logger
+import { logAction } from "../utils/logAction"; //   action logger
 
 type TowRequestWithNames = {
   id: string;
@@ -102,7 +102,7 @@ export function useTowRequests() {
     }
   };
 
-  // ✅ Helper to get current user info
+  //   Helper to get current user info
   const getCurrentUserInfo = async () => {
     const currentUser = auth.currentUser;
     if (!currentUser) throw new Error("Not authenticated");
@@ -118,7 +118,7 @@ export function useTowRequests() {
     };
   };
 
-  // ✅ Update tow request status
+  //   Update tow request status
   const updateTowRequestStatus = async (
     requestId: string,
     newStatus: TowRequestWithNames["status"]
@@ -148,7 +148,7 @@ export function useTowRequests() {
     }
   };
 
-  // ✅ Assign operator
+  //   Assign operator
   const assignOperatorToRequest = async (
     requestId: string,
     operatorId: string
@@ -182,7 +182,7 @@ export function useTowRequests() {
     }
   };
 
-  // ✅ Cancel tow request
+  //   Cancel tow request
   const cancelTowRequest = async (requestId: string) => {
     try {
       const { uid, name, role } = await getCurrentUserInfo();

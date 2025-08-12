@@ -12,7 +12,7 @@ import {
 } from "firebase/firestore";
 import { toast } from "react-toastify";
 import { auth } from "../../firebase";
-import { logAction } from "../utils/logAction"; // ✅ adjust path if needed
+import { logAction } from "../utils/logAction"; //   adjust path if needed
 
 const db = getFirestore();
 

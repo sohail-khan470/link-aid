@@ -377,7 +377,7 @@ export default function InsuranceStaffManagement() {
         onCancel={() => setAlertOpen(false)}
       />
 
-      {/* ✅ Deleted Success Modal */}
+      {/*   Deleted Success Modal */}
       <CustomAlert
         isOpen={successOpen}
         title="Deleted!"
