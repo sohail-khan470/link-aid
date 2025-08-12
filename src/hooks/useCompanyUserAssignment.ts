@@ -25,7 +25,7 @@ export const useStaffAssignment = () => {
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [companyName, setCompanyName] = useState<string>("Unknown Company");
 
-  // ✅ Step 1: Find current user's company
+  //   Step 1: Find current user's company
   useEffect(() => {
     const fetchCompany = async () => {
       const currentUser = auth.currentUser;
@@ -60,7 +60,7 @@ export const useStaffAssignment = () => {
     fetchCompany();
   }, []);
 
-  // ✅ Step 2: Real-time staff fetch
+  //   Step 2: Real-time staff fetch
   const subscribeStaff = (companyId: string) => {
     const q = query(
       collection(db, "users"),
@@ -77,7 +77,7 @@ export const useStaffAssignment = () => {
     });
   };
 
-  // ✅ Search civilian by email
+  //   Search civilian by email
   const fetchUserByEmail = async () => {
     setLoading(true);
     setUserData(null);
@@ -119,7 +119,7 @@ export const useStaffAssignment = () => {
     }
   };
 
-  // ✅ Assign a civilian as insurer in this company
+  //   Assign a civilian as insurer in this company
   const assignRoleAndCompany = async (newRole: string) => {
     if (!userData || !companyId) {
       toast.error("Missing user or company info.");
@@ -161,7 +161,7 @@ export const useStaffAssignment = () => {
     }
   };
 
-  // ✅ Delete staff (revert to civilian)
+  //   Delete staff (revert to civilian)
   const deleteStaff = async (id: string) => {
     try {
       const userRef = doc(db, "users", id);
@@ -200,7 +200,7 @@ export const useStaffAssignment = () => {
     }
   };
 
-  // ✅ Update staff role or verification status
+  //   Update staff role or verification status
   const updateStaffRole = async (
     targetUserId: string,
     newRole: string,

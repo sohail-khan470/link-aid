@@ -376,7 +376,7 @@ export default function TowingStaffManagement() {
         onCancel={() => setAlertOpen(false)}
       />
 
-      {/* ✅ Deleted Success Modal */}
+      {/*   Deleted Success Modal */}
       <CustomAlert
         isOpen={successOpen}
         title="Deleted!"

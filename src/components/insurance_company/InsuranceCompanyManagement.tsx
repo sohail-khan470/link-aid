@@ -24,7 +24,7 @@ interface Company {
   region: string;
   createdAt?: Timestamp;
   activeClaims?: any[];
-  isVerified?: boolean; // ✅ Added field
+  isVerified?: boolean; //   Added field
   Staff?: string;
 }
 
@@ -65,10 +65,10 @@ export default function InsuranceCompanyManagement() {
     staff: "",
   });
 
-  // ✅ Region Filter
+  //   Region Filter
   const [regionFilter, setRegionFilter] = useState("");
 
-  // ✅ Pagination
+  //   Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
@@ -86,7 +86,7 @@ export default function InsuranceCompanyManagement() {
     );
   }, [filteredCompanies, currentPage]);
 
-  // ✅ Handlers
+  //   Handlers
   const handleEdit = (company: Company) => {
     setCurrentCompany(company);
     setFormData({
@@ -188,7 +188,7 @@ export default function InsuranceCompanyManagement() {
                         "Staff",
                         "Region",
                         "Active Claims",
-                        "Verified", // ✅ Added column
+                        "Verified", //   Added column
                         "Actions",
                       ].map((heading) => (
                         <TableCell
@@ -232,7 +232,7 @@ export default function InsuranceCompanyManagement() {
                             {c.activeClaims?.length || 0} Active
                           </Badge>
                         </TableCell>
-                        {/* ✅ Verified Badge */}
+                        {/*   Verified Badge */}
                         <TableCell className="py-3 px-5">
                           <Badge
                             size="sm"
@@ -266,7 +266,7 @@ export default function InsuranceCompanyManagement() {
               </div>
             </div>
 
-            {/* ✅ Pagination */}
+            {/*   Pagination */}
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
@@ -276,7 +276,7 @@ export default function InsuranceCompanyManagement() {
         )}
       </ComponentCard>
 
-      {/* ✅ Modal */}
+      {/*   Modal */}
       {showForm && (
         <Modal isOpen onClose={() => setShowForm(false)}>
           <div className="relative w-full">

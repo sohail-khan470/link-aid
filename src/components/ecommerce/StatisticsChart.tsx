@@ -113,7 +113,7 @@ export default function StatisticsChart() {
           {hasData ? (
             <Chart
               options={options}
-              series={chartData} // ✅ Show all roles
+              series={chartData} //   Show all roles
               type="area"
               height={310}
             />

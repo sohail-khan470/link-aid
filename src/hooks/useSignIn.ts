@@ -35,7 +35,7 @@ export function useSignIn() {
 
     await updateDoc(userRef, { lastLogin: serverTimestamp() });
 
-    // // ✅ Exclude super_admin from logging
+    // //   Exclude super_admin from logging
     // if (role !== "super_admin") {
     //   await logAction({
     //     userId: uid,
@@ -72,7 +72,7 @@ export function useSignIn() {
         throw new Error("Google Sign-In failed. No user information received.");
       }
 
-      // ✅ Fetch user data from Firestore
+      //   Fetch user data from Firestore
       const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
 
@@ -84,7 +84,7 @@ export function useSignIn() {
       const role = userData?.role ?? "unknown";
       const userName = userData?.fullName ?? "Unknown";
 
-      // ✅ Exclude super_admin from log
+      //   Exclude super_admin from log
       if (role !== "super_admin") {
         await logAction({
           userId: user.uid,

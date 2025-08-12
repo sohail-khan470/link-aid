@@ -44,7 +44,7 @@ const PublicRoute = () => {
     return <Navigate to="/signin" replace />;
   }
 
-  // ✅ Otherwise allow access to public route (e.g. SignIn page)
+  //   Otherwise allow access to public route (e.g. SignIn page)
   return <Outlet />;
 };
 

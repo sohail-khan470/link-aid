@@ -31,7 +31,7 @@ export default function MonthlyRegistrationsChart() {
         const role = data.role;
         const createdAt: Timestamp | undefined = data.createdAt;
 
-        // ✅ Skip if no createdAt or if role is super_admin
+        //   Skip if no createdAt or if role is super_admin
         if (!createdAt?.toDate || role === "super_admin") return;
 
         const date = createdAt.toDate();

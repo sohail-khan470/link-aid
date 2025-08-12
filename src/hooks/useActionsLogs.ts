@@ -72,7 +72,7 @@ export function useActionsLog() {
 
                     setLogs(filteredLogs);
 
-                    // ✅ Detect if there's a truly new log
+                    //   Detect if there's a truly new log
                     if (
                       filteredLogs.length > 0 &&
                       filteredLogs[0].id !== lastSeenLogId.current
