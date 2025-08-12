@@ -29,6 +29,8 @@ const ROWS_PER_PAGE = 6;
 export default function TowRequestsTable() {
   const { requests, loading, error, refetch } = useTowRequests();
 
+  console.log("object", requests);
+
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
@@ -121,16 +123,22 @@ export default function TowRequestsTable() {
     setEditData({});
   };
 
-  const filtered = useMemo(
-    () =>
-      requests.filter(
-        (r) =>
-          r.civilianName.toLowerCase().includes(searchName.toLowerCase()) &&
-          (searchRole ? r.role === searchRole : true) &&
-          (searchStatus ? r.status === searchStatus : true)
-      ),
-    [requests, searchName, searchRole, searchStatus]
+const filtered = useMemo(() => {
+  // Sort requests by timestamp descending (latest first)
+  const sortedRequests = [...requests].sort((a, b) => {
+    const timeA = a.timestamp?.toDate()?.getTime() || 0;
+    const timeB = b.timestamp?.toDate()?.getTime() || 0;
+    return timeB - timeA;
+  });
+
+  return sortedRequests.filter(
+    (r) =>
+      r.civilianName.toLowerCase().includes(searchName.toLowerCase()) &&
+      (searchRole ? r.role === searchRole : true) &&
+      (searchStatus ? r.status === searchStatus : true)
   );
+}, [requests, searchName, searchRole, searchStatus]);
+
 
   const paginated = useMemo(() => {
     const start = (currentPage - 1) * ROWS_PER_PAGE;
@@ -411,7 +419,7 @@ export default function TowRequestsTable() {
 
                       {/* Requested At */}
                       <TableCell className="px-6 py-4 text-gray-700 dark:text-gray-300">
-                        {r.requestedAt?.toDate().toLocaleString("en-GB", {
+                        {r.timestamp?.toDate().toLocaleString("en-GB", {
                           day: "2-digit",
                           month: "2-digit",
                           year: "numeric",
@@ -440,12 +448,15 @@ export default function TowRequestsTable() {
                               </button>
                             </div>
                           ) : (
-                            <button
-                              onClick={() => handleEdit(r)}
-                              className="text-blue-600 hover:text-blue-800"
-                            >
-                              <Pencil size={16} />
-                            </button>
+                            r.status !== "accepted" &&
+                            r.status !== "resolved" && (
+                              <button
+                                onClick={() => handleEdit(r)}
+                                className="text-blue-600 hover:text-blue-800"
+                              >
+                                <Pencil size={16} />
+                              </button>
+                            )
                           )}
                         </TableCell>
                       )}
