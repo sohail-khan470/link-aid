@@ -26,7 +26,7 @@ type TowRequestWithNames = {
   priorityScore?: number | null;
   notes?: string;
   companyId?: string | null;
-  requestedAt: Timestamp | null;
+  timestamp: Timestamp | null;
   civilianName: string;
   operatorName: string;
   role: string;
@@ -84,8 +84,8 @@ export function useTowRequests() {
             priorityScore: tow.priorityScore ?? null,
             notes: tow.notes || "",
             companyId: tow.companyId || null,
-            requestedAt:
-              tow.requestedAt instanceof Timestamp ? tow.requestedAt : null,
+            timestamp:
+              tow.timestamp instanceof Timestamp ? tow.timestamp : null,
             civilianName,
             operatorName,
             role: civilianRole,

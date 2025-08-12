@@ -1,13 +1,7 @@
-import { useEffect, useState } from "react";
-import {
-  collection,
-  getDocs,
-  orderBy,
-  query,
-  limit,
-  Timestamp,
-} from "firebase/firestore";
-import { db } from "../../../firebase";
+import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
+import Badge from "../ui/badge/Badge";
+import LoadingSpinner from "../ui/LoadingSpinner";
 import {
   Table,
   TableBody,
@@ -15,18 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-import Badge from "../ui/badge/Badge";
-import LoadingSpinner from "../ui/LoadingSpinner";
-import { format } from "date-fns";
-import { useNavigate } from "react-router-dom";
-
-interface Claim {
-  id: string;
-  category?: string;
-  description?: string;
-  status?: "submitted" | "pending" | "resolved" | "rejected";
-  submittedAt?: Timestamp;
-}
+import { useClaims } from "../../hooks/useClaims"; // ⬅️ use your rewritten hook
 
 type BadgeColor =
   | "primary"
@@ -41,44 +24,21 @@ type BadgeColor =
   | "gray";
 
 export default function RecentClaims() {
-  const [claims, setClaims] = useState<Claim[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
+  const { claims, loading, error } = useClaims(); // ⬅️ claims already filtered by role/company
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchClaims = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const q = query(
-          collection(db, "claims"),
-          orderBy("submittedAt", "desc"),
-          limit(5)
-        );
-        const snapshot = await getDocs(q);
-        const fetched: Claim[] = snapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            category: data.category || "N/A",
-            description: data.description || "N/A",
-            status: data.status || "submitted",
-            submittedAt: data.submittedAt || null,
-          } as Claim;
-        });
-        setClaims(fetched);
-      } catch (err) {
-        console.error("Error fetching claims:", err);
-        setError("Failed to load recent claims.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchClaims();
-  }, []);
+  // Show only latest 5
+  const sortedClaims = [...claims]
+    .sort((a, b) => {
+      const dateA = a.submittedAt?.toDate
+        ? a.submittedAt.toDate().getTime()
+        : 0;
+      const dateB = b.submittedAt?.toDate
+        ? b.submittedAt.toDate().getTime()
+        : 0;
+      return dateB - dateA;
+    })
+    .slice(0, 5);
 
   const getStatusColor = (status?: string): BadgeColor => {
     switch (status) {
@@ -118,7 +78,7 @@ export default function RecentClaims() {
         <p className="text-center text-red-500 dark:text-red-400 text-sm font-medium py-6">
           {error}
         </p>
-      ) : claims.length === 0 ? (
+      ) : sortedClaims.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-10 text-center">
           <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-full mb-4">
             <svg
@@ -163,17 +123,17 @@ export default function RecentClaims() {
             </TableHeader>
 
             <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
-              {claims.map((claim) => (
+              {sortedClaims.map((claim) => (
                 <TableRow
                   key={claim.id}
                   className="hover:bg-gray-50 dark:hover:bg-white/[0.05] transition"
                 >
                   <TableCell className="py-3 text-gray-800 dark:text-white/90">
-                    {claim.category}
+                    {claim.category || "N/A"}
                   </TableCell>
                   <TableCell className="py-3 text-gray-500 text-theme-sm dark:text-gray-400 max-w-[240px]">
                     <div className="truncate" title={claim.description}>
-                      {claim.description}
+                      {claim.description || "N/A"}
                     </div>
                   </TableCell>
                   <TableCell className="py-3">

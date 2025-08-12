@@ -41,8 +41,6 @@ export default function InsuranceHolderManagement() {
     assignHolderToCompany,
   } = useHoldersWithPolicies();
 
-  console.log("Holder with Policy", holdersWithPolicies);
-
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
 
