@@ -20,7 +20,7 @@ export default function ActionsLogTable() {
   const [userFilter, setUserFilter] = useState("");
   const [actionFilter, setActionFilter] = useState("");
 
-  const itemsPerPage = 6;
+  const itemsPerPage = 10;
 
   const getRoleColor = (role: string) => {
     switch (role) {
